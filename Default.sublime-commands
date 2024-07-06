@@ -1,0 +1,34 @@
+[
+	{
+		"command": "ssh_connect",
+		"caption": "SSHubl: Connect to server"
+	},
+	{
+		"command": "ssh_disconnect",
+		"caption": "SSHubl: Disconnect from server"
+	},
+	{
+		"command": "ssh_request_forward",
+		"caption": "SSHubl: Open forward port/socket"
+	},
+	{
+		"command": "ssh_cancel_forward",
+		"caption": "SSHubl: Cancel forward port/socket"
+	},
+	{
+		"command": "ssh_open_dir",
+		"caption": "SSHubl: Open directory (mount sshfs)"
+	},
+	{
+		"command": "ssh_select_dir",
+		"caption": "SSHubl: Select directory (mount sshfs)"
+	},
+	{
+		"command": "ssh_close_dir",
+		"caption": "SSHubl: Close directory (unmount sshfs)"
+	},
+	{
+		"command": "ssh_terminal",
+		"caption": "SSHubl: Open a terminal"
+	},
+]

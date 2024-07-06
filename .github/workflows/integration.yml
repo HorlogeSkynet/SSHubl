@@ -1,0 +1,47 @@
+---
+name: Integration
+
+on: [push, pull_request]
+
+jobs:
+  python_lint:
+    name: Lint Python sources
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install and run development tools
+        run: |
+          pip install --disable-pip-version-check uv
+          uv venv venv && source venv/bin/activate
+          uv pip install -r requirements-dev.txt
+          pylint *.py sshubl/ tests/
+          mypy *.py sshubl/ tests/
+          ruff format --check --diff *.py sshubl/ tests/
+
+  plugin_tests:
+    name: Run plugin tests
+    strategy:
+      fail-fast: false
+      matrix:
+        st-version:
+          - 4
+        os:
+          - ubuntu-latest
+          - macOS-latest
+          # - windows-latest
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: SublimeText/UnitTesting/actions/setup@v1
+        with:
+          sublime-text-version: ${{ matrix.st-version }}
+
+      - uses: SublimeText/UnitTesting/actions/run-tests@v1

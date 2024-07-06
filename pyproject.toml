@@ -1,0 +1,34 @@
+[tool.pylint.MASTER]
+disable = [
+	"missing-docstring",
+	"relative-beyond-top-level",
+]
+ignored-modules = [
+	"sublime",
+	"sublime_plugin",
+]
+jobs = 0
+load-plugins = [
+	"pylint_secure_coding_standard",
+]
+
+[tool.pylint.DESIGN]
+min-public-methods = 0
+
+[tool.mypy]
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = "sublime.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "sublime_plugin.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "package_control.*"
+ignore_missing_imports = true
+
+[tool.ruff]
+line-length = 100

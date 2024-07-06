@@ -1,0 +1,99 @@
+[
+	{
+		"id": "tools",
+		"children":
+		[
+			{
+				"id": "packages",
+				"caption": "Packages",
+				"children":
+				[
+					{
+						"caption": "SSHubl",
+						"children":
+						[
+							{
+								"command": "ssh_connect",
+								"caption": "Connect to server"
+							},
+							{
+								"command": "ssh_disconnect",
+								"caption": "Disconnect from server"
+							},
+							{
+								"command": "ssh_request_forward",
+								"caption": "Open forward port/socket"
+							},
+							{
+								"command": "ssh_cancel_forward",
+								"caption": "Cancel forward port/socket"
+							},
+							{
+								"command": "ssh_open_dir",
+								"caption": "Open directory (mount sshfs)"
+							},
+							{
+								"command": "ssh_select_dir",
+								"caption": "Select directory (mount sshfs)"
+							},
+							{
+								"command": "ssh_close_dir",
+								"caption": "Close directory (unmount sshfs)"
+							},
+							{
+								"command": "ssh_terminal",
+								"caption": "Open a terminal"
+							},
+						]
+					}
+				]
+			}
+		]
+	},
+	{
+		"caption": "Preferences",
+		"id": "preferences",
+		"children":
+		[
+			{
+				"caption": "Package Settings",
+				"id": "package-settings",
+				"children":
+				[
+					{
+						"caption": "SSHubl",
+						"children":
+						[
+							{
+								"caption": "Settings",
+								"command": "edit_settings",
+								"args":
+								{
+									"base_file": "${packages}/SSHubl/SSHubl.sublime-settings",
+									"default": "// SSHubl Settings - User\n{\n\t$0\n}\n"
+								}
+							},
+							{
+								"caption": "-"
+							},
+							{
+								"caption": "Documentation",
+								"command": "open_url",
+								"args": {
+									"url": "https://github.com/HorlogeSkynet/SSHubl"
+								}
+							},
+							{
+								"caption": "Issues",
+								"command": "open_url",
+								"args": {
+									"url": "https://github.com/HorlogeSkynet/SSHubl/issues"
+								}
+							}
+						]
+					}
+				]
+			}
+		]
+	}
+]
