@@ -1,0 +1,9 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    ignore:
+      # pexpect is known to be outdated as it's manually packaged for Sublime Text (see https://github.com/varp/sublime-pexpect)
+      - dependency-name: "pexpect"
