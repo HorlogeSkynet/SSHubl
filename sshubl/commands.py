@@ -33,7 +33,7 @@ settings = sublime.load_settings("SSHubl.sublime-settings")
 
 # this lock is used to prevent multiple `SshConnectPassword` window commands to run simultaneously
 # Development note : this lock **must not** be blocking not re-entrant as commands are run by an
-# unique (separate) thread that would be globally blocked
+#                    unique (separate) thread that would be globally blocked
 ssh_connect_password_command_lock = ThreadingLock()
 
 

@@ -6,12 +6,15 @@ import sublime
 ST_REQUIRED_MINIMUM_VERSION = 4081
 
 for suffix in (
+    # constants
     "paths",
+    # utilities
     "project_data",
     "ssh_utils",
     "st_utils",
+    # controllers
     "actions",
-    # reload commands and listeners at last as they depend on other modules
+    # commands and listeners (at last, as they depend on other modules)
     "commands",
     "listeners",
 ):
