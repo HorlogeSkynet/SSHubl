@@ -1,6 +1,6 @@
 pexpect~=4.8.0
 
-pylint~=3.2.2
+pylint~=3.2.5
 pylint-secure-coding-standard~=1.5.1
 mypy~=1.10.0
 types-pexpect
