@@ -360,7 +360,8 @@ def schedule_ssh_connect_password_command(  # pylint: disable=too-many-arguments
     *,
     delay: int = 0,
 ) -> None:
-    window = window or sublime.active_window()
+    if window is None:
+        window = sublime.active_window()
 
     if delay != 0:
         _logger.debug(
