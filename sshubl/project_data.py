@@ -119,12 +119,12 @@ class SshSession:
         """
         return (
             forward_1["is_reverse"],
-            forward_1["orig_target_1"],
-            forward_1["orig_target_2"],
+            forward_1["target_local"],
+            forward_1["target_remote"],
         ) == (
             forward_2["is_reverse"],
-            forward_2["orig_target_1"],
-            forward_2["orig_target_2"],
+            forward_2["target_local"],
+            forward_2["target_remote"],
         )
 
     @classmethod
@@ -148,12 +148,23 @@ class SshSession:
                     #         "/local/mount/point": "/remote/path",
                     #     },
                     #     "forwards": [
+                    #         // we save original forward targets as OpenSSH expects them on
+                    #         // cancellation (see `SshCancelForwardCommand`)
                     #         {
-                    #             "is_reverse": false,  // is it a reverse forward
-                    #             "orig_target_1": "",  // 1st forward target ([127.1:42]:127.1:42)
-                    #             "orig_target_2": "",  // 2nd forward target (127.1:42:[127.1:42])
-                    #             "target_local": "",   // "local" target (from SSHubl PoV)
-                    #             "target_remote": "",  // "remote" target (from SSHubl PoV)
+                    #             // "-L 127.0.0.1:8888:127.0.0.1:22" would be stored as :
+                    #             "is_reverse": false,
+                    #             "orig_target_1": "127.0.0.1:8888", // 1st forward target
+                    #             "orig_target_2": "127.0.0.1:22",   // 2nd forward target
+                    #             "target_local": "127.0.0.1:8888",  // "local" forward target
+                    #             "target_remote": "127.0.0.1:22",   // "remote" forward target
+                    #         },
+                    #         {
+                    #             // "-R 127.0.0.1:0:[::1]:8888" would be stored as :
+                    #             "is_reverse": true,
+                    #             "orig_target_1": "127.0.0.1:0",
+                    #             "orig_target_2": "[::1]:8888",
+                    #             "target_local": "[::1]:8888",
+                    #             "target_remote": "127.0.0.1:4242",  // allocated by remote
                     #         },
                     #     ],
                     #     "is_up": true,
