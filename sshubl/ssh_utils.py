@@ -270,8 +270,8 @@ def ssh_forward(
         )
         return None
 
-    # if port must be allocated by remote, update `target_1` to allow future forward requests to
-    # re-use the same port
+    # if port is expected to be dynamically-allocated by remote, update `target_remote` to allow
+    # future forward requests to re-use the same port
     split_target_1 = target_1.rsplit(":", maxsplit=1)
     if do_open and is_reverse and int(split_target_1[-1]) == 0:
         try:
@@ -285,7 +285,7 @@ def ssh_forward(
                 target_local,
             )
             split_target_1[-1] = str(remote_port)
-            target_1 = target_remote = ":".join(split_target_1)
+            target_remote = ":".join(split_target_1)
 
     _logger.debug(
         "successfully %s forward %s %s %s",

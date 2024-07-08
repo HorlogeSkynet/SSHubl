@@ -116,12 +116,19 @@ class SshConnect(Thread):
 
         # re-open previous forwards (if any)
         for forward in self.forwards:
+            # infer original forwarding rule from "local" and "remote" targets
+            is_reverse = forward["is_reverse"]
+            target_1, target_2 = (
+                forward["target_remote"] if is_reverse else forward["target_local"],
+                forward["target_local"] if is_reverse else forward["target_remote"],
+            )
+
             SshForward(
                 self.view,
                 identifier,
-                forward["is_reverse"],
-                forward["orig_target_1"],
-                forward["orig_target_2"],
+                is_reverse,
+                target_1,
+                target_2,
             ).start()
 
 
