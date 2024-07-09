@@ -281,7 +281,10 @@ class SshConnectPasswordCommand(sublime_plugin.WindowCommand):
         # make sure `_finish` method is called
         try:
             # if this connection corresponds to a known session re-schedule an attempt in 10 seconds
-            if identifier is not None:
+            if (
+                identifier is not None
+                and SshSession.get_from_project_data(uuid.UUID(identifier), self.window) is not None
+            ):
                 schedule_ssh_connect_password_command(
                     host,
                     port,
