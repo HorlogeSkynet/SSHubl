@@ -16,11 +16,13 @@ from .paths import mounts_path, sockets_path
 _logger = logging.getLogger(__package__)
 
 
-settings = sublime.load_settings("SSHubl.sublime-settings")
+def _settings():
+    return sublime.load_settings("SSHubl.sublime-settings")
 
-ssh_program = settings.get("ssh_path") or shutil.which("ssh")
-sshfs_program = settings.get("sshfs_path") or shutil.which("sshfs")
-umount_program = settings.get("umount_path")
+
+ssh_program = _settings().get("ssh_path") or shutil.which("ssh")
+sshfs_program = _settings().get("sshfs_path") or shutil.which("sshfs")
+umount_program = _settings().get("umount_path")
 if platform.system() == "Linux":
     umount_program = umount_program or shutil.which("fusermount")
     umount_flags: typing.Tuple[str, ...] = ("-q", "-u")
@@ -83,9 +85,9 @@ def ssh_connect(
     # run OpenSSH using pexpect to setup connection and non-interactively deal with prompts
     ssh = pxssh.pxssh(
         options={
-            **(settings.get("ssh_options") or {}),
+            **(_settings().get("ssh_options") or {}),
             # enforce keep-alive for future sshfs usages (see upstream recommendations)
-            "ServerAliveInterval": str((settings.get("ssh_server_alive_interval") or 15)),
+            "ServerAliveInterval": str((_settings().get("ssh_server_alive_interval") or 15)),
             "ControlMaster": "auto",
             "ControlPath": str(sockets_path / str(identifier)),
             # keep connection opened for 1 minute (without new connection to control socket)
@@ -106,11 +108,11 @@ def ssh_connect(
             host,
             login,
             password or "",
-            login_timeout=settings.get("ssh_login_timeout") or 10,
+            login_timeout=_settings().get("ssh_login_timeout") or 10,
             port=port,
             cmd=ssh_program,
             # allow user to disable host authentication for loopback addresses
-            check_local_ip=settings.get("ssh_host_authentication_for_localhost") or True,
+            check_local_ip=_settings().get("ssh_host_authentication_for_localhost") or True,
         )
     except pxssh.ExceptionPxssh as exception:
         # if authentication failed without password, raise a specific exception
