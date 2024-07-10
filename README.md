@@ -54,10 +54,13 @@ Open your command palette and type in `SSHubl` to select `Connect to server`. On
 {
 	"debug": false,
 	// Custom path to OpenSSH client program
+	// /!\ This setting requires plugin reload (or Sublime restart)
 	"ssh_path": null,
 	// Custom path to `sshfs` FUSE client program
+	// /!\ This setting requires plugin reload (or Sublime restart)
 	"sshfs_path": null,
 	// Custom path to `umount` program (`fusermount` on Linux)
+	// /!\ This setting requires plugin reload (or Sublime restart)
 	"umount_path": null,
 	// Custom options to pass to OpenSSH **master** (e.g. useful for bastion traversal)
 	"ssh_options": {
