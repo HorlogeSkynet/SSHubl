@@ -215,7 +215,7 @@ class SshConnectPasswordCommand(sublime_plugin.WindowCommand):
             return
 
         panel = self.window.show_input_panel(
-            caption=f"{login}@{format_ip_addr(host)}:{port}'s password:",
+            caption=f"press 'ESC' to cancel  |  {login}@{format_ip_addr(host)}:{port}'s password:",
             initial_text="",
             on_done=functools.partial(
                 self._on_done,
