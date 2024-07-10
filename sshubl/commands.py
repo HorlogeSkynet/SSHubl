@@ -282,11 +282,22 @@ class SshConnectPasswordCommand(sublime_plugin.WindowCommand):
     ) -> None:
         # make sure `_finish` method is called
         try:
-            # if this connection corresponds to a known session re-schedule an attempt in 10 seconds
-            if (
-                identifier is not None
-                and SshSession.get_from_project_data(uuid.UUID(identifier), self.window) is not None
+            # if this connection corresponds to a known session...
+            if identifier is None:
+                return
+
+            # ... ask user if they really want to cancel re-connection
+            if sublime.ok_cancel_dialog(
+                f"Do you want to stop re-connecting to {login}@{format_ip_addr(host)}:{port} ?",
+                ok_title="Stop",
+                title="Re-connection cancellation confirmation",
             ):
+                # drop session from project data (if any) if they choose to
+                ssh_session = SshSession.get_from_project_data(uuid.UUID(identifier))
+                if ssh_session is not None:
+                    ssh_session.remove_from_project_data()
+            else:
+                # re-schedule an attempt otherwise
                 schedule_ssh_connect_password_command(
                     host,
                     port,
@@ -295,7 +306,6 @@ class SshConnectPasswordCommand(sublime_plugin.WindowCommand):
                     mounts,
                     forwards,
                     self.window,
-                    delay=10000,
                 )
         finally:
             self._finish(panel_to_open)
