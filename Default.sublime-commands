@@ -1,5 +1,13 @@
 [
 	{
+		"command": "edit_settings",
+		"caption": "Preferences: SSHubl Settings",
+		"args": {
+			"base_file": "${packages}/SSHubl/SSHubl.sublime-settings",
+			"default": "// SSHubl Settings - User\n{\n\t$0\n}\n"
+		}
+	},
+	{
 		"command": "ssh_connect",
 		"caption": "SSHubl: Connect to server"
 	},

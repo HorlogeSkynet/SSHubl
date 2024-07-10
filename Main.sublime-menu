@@ -67,8 +67,7 @@
 							{
 								"caption": "Settings",
 								"command": "edit_settings",
-								"args":
-								{
+								"args": {
 									"base_file": "${packages}/SSHubl/SSHubl.sublime-settings",
 									"default": "// SSHubl Settings - User\n{\n\t$0\n}\n"
 								}
