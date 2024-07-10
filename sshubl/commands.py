@@ -29,12 +29,14 @@ from .st_utils import (
     validate_forward_target,
 )
 
-settings = sublime.load_settings("SSHubl.sublime-settings")
-
 # this lock is used to prevent multiple `SshConnectPassword` window commands to run simultaneously
 # Development note : this lock **must not** be blocking not re-entrant as commands are run by an
 #                    unique (separate) thread that would be globally blocked
 ssh_connect_password_command_lock = ThreadingLock()
+
+
+def _settings():
+    return sublime.load_settings("SSHubl.sublime-settings")
 
 
 def _with_session_identifier(func):
@@ -699,7 +701,7 @@ class SshTerminalCommand(sublime_plugin.TextCommand):
         # check Terminus third-party package is actually installed before continuing.
         # we check for a (hidden) setting which allows package lookup bypass for developers who know
         # what they're doing
-        if not settings.get("terminus_is_installed") and not is_package_installed("Terminus"):
+        if not _settings().get("terminus_is_installed") and not is_package_installed("Terminus"):
             sublime.error_message("Please install Terminus package to open a remote terminal !")
             return
 
