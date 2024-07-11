@@ -707,7 +707,8 @@ class SshTerminalCommand(sublime_plugin.TextCommand):
 
         window = self.view.window() or sublime.active_window()
 
-        ssh_session = SshSession.get_from_project_data(uuid.UUID(identifier), window)
+        session_identifier = uuid.UUID(identifier)
+        ssh_session = SshSession.get_from_project_data(session_identifier, window)
         title = str(ssh_session) if ssh_session is not None else None
 
         window.run_command(
@@ -715,7 +716,7 @@ class SshTerminalCommand(sublime_plugin.TextCommand):
             {
                 "shell_cmd": shlex.join(
                     get_base_ssh_cmd(
-                        uuid.UUID(identifier),
+                        session_identifier,
                         ("-q",),
                     )
                 ),
