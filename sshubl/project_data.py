@@ -67,9 +67,10 @@ def add_to_project_folders(
 
     with lock:
         project_data = window.project_data() or {}
-        folders = project_data["folders"]
+        folders = project_data.get("folders", [])
         if new_folder not in {folder["path"] for folder in folders}:
             folders.append({"path": new_folder, "name": sidebar_name})
+            project_data["folders"] = folders
             window.set_project_data(project_data)
 
     # make Sublime refresh folders list, as we might haven't triggered `set_project_data` and folder
@@ -87,10 +88,9 @@ def remove_from_project_folders(
 
     with lock:
         project_data = window.project_data() or {}
-        filtered_folders = [
-            folder for folder in project_data["folders"] if folder["path"] != old_folder
-        ]
-        if filtered_folders != project_data["folders"]:
+        folders = project_data.get("folders", [])
+        filtered_folders = [folder for folder in folders if folder["path"] != old_folder]
+        if filtered_folders != folders:
             project_data["folders"] = filtered_folders
             window.set_project_data(project_data)
 

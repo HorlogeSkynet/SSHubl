@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Remote folder opening when there isn't any currently opened folder
+
 ## [0.2.0] - 2024-07-11
 
 ### Added
