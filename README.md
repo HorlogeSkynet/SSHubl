@@ -46,7 +46,7 @@ Package Control dedicated page [here](https://packagecontrol.io/packages/SSHubl)
 
 Open your command palette and type in `SSHubl` to select `Connect to server`. Once connected, you will be able to select `Forward port/socket`, `Open/Select directory (mount sshfs)` or even `Open a terminal` commands.
 
-![Preview](https://i.imgur.com/mOqxMsP.gif)
+![Preview](https://i.imgur.com/i5uPoWD.gif)
 
 ## Settings
 
