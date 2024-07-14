@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Disable `pexpect` remote prompt hacks (polluting shell history)
+
 ### Fixed
 
 - Remote folder opening when there isn't any currently opened folder

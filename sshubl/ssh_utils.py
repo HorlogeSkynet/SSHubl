@@ -110,6 +110,7 @@ def ssh_connect(
             password or "",
             login_timeout=_settings().get("ssh_login_timeout") or 10,
             port=port,
+            auto_prompt_reset=False,
             cmd=ssh_program,
             # allow user to disable host authentication for loopback addresses
             check_local_ip=_settings().get("ssh_host_authentication_for_localhost") or True,
