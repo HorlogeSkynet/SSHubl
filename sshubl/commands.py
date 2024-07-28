@@ -350,7 +350,7 @@ class _ForwardTargetInputHandler(ABC, sublime_plugin.TextInputHandler):
     _INITIAL_TEXT = "127.0.0.1:"
     _INITIAL_TEXT_LENGTH = len(_INITIAL_TEXT)
 
-    _TIPS_FORMAT_STRING = "Tips : {side} socket (TCP address or UNIX path) to {action}"
+    _TIPS_FORMAT_STRING = "Tips : {side} socket (TCP address or UNIX domain path) to {action}"
 
     def __init__(self, *args, is_reverse: bool, **kwargs):
         self.is_reverse = is_reverse

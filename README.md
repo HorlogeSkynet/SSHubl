@@ -8,7 +8,7 @@ This plugin aims to grant the power of (Open)SSH to Sublime Text. Included featu
 
 * Open a remote terminal
 * Open a remote folder over sshfs
-* Open forward and reverse ports (or UNIX sockets)
+* Open forward and reverse ports (or UNIX domain sockets)
 * Automatic environment re-setup on [project](https://www.sublimetext.com/docs/projects.html) opening
 
 It has been inspired by Visual Studio Code's [Remote - SSH](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh) plugin, **without** the inconvenient of depending on a remote agent running on the SSH server.

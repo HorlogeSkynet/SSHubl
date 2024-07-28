@@ -239,8 +239,8 @@ def ssh_forward(
     identifier: uuid.UUID, do_open: bool, is_reverse: bool, target_1: str, target_2: str
 ) -> typing.Optional[dict]:
     """
-    Open/Close (reverse) port/UNIX socket forwarding, and return a dict uniquely identifying it on
-    success.
+    Open/Close (reverse) port/UNIX domain socket forwarding, and return a dict uniquely identifying
+    it on success.
     If an error occurs, it is logged and `None` is returned.
     """
     if is_reverse:
