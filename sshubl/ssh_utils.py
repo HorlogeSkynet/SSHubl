@@ -2,6 +2,7 @@ import contextlib
 import logging
 import os
 import platform
+import shlex
 import shutil
 import subprocess
 import typing
@@ -293,6 +294,18 @@ def ssh_forward(
             )
             split_target_1[-1] = str(remote_port)
             target_remote = ":".join(split_target_1)
+
+    # when closing an UNIX domain socket forward, also remove socket from disk to allow future
+    # forward requests to re-use the same path
+    if not do_open and target_1_port is None:
+        if is_reverse:
+            if (
+                ssh_exec(identifier, ("rm", "-f", shlex.quote(target_1))) is None
+                and ssh_exec(identifier, ("del", "/q", shlex.quote(target_1))) is None
+            ):
+                _logger.warning("couldn't remove remote UNIX domain socket")
+        else:
+            Path(target_1).unlink(missing_ok=True)
 
     _logger.debug(
         "successfully %s forward %s %s %s",
