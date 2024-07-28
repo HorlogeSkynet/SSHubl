@@ -352,7 +352,7 @@ def ssh_exec(identifier: uuid.UUID, args: typing.Iterable[str]) -> typing.Option
         )
         return None
 
-    _logger.debug("successfully executed %s remotely : %s", args, stdout.rstrip())
+    _logger.debug("successfully executed %s remotely : stdout=%s", args, stdout.rstrip())
     return stdout
 
 
