@@ -136,7 +136,7 @@ def validate_forward_target(forward_str: str) -> bool:
     try:
         host, port = parts
     except ValueError:
-        # only one part, could be either a port or an UNIX socket path
+        # only one part, could be either a port or an UNIX domain socket path
         return True
 
     # remove square brackets from host (if any)
