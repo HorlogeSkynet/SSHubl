@@ -21,6 +21,8 @@ HOSTNAME_REGEXP = re.compile(
     r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"  # pylint: disable=line-too-long
 )
 
+OPENSSH_SPECIAL_BIND_ADDRESSES = ("localhost", "*")
+
 
 def conditional_cache(no_cache_result: typing.Optional[tuple] = None):
     """A conditional cache wrapper, taken from <https://stackoverflow.com/a/68665480>"""
@@ -120,6 +122,43 @@ def parse_ssh_connection(connection_str: str) -> typing.Tuple[str, int, str, typ
     )
 
 
+@functools.lru_cache()
+def pretty_forward_target(forward_str) -> str:
+    """
+    Pretty forward target formatter.
+
+    These rules applied :
+      * do not alter UNIX domain socket paths
+      * do not alter `host:port` BSD socket addresses (when host is a domain name)
+      * hide `host` from `host:port` BSD socket addresses, when it's "unspecified" (in RFC terms)
+      * hide `host` from `host:port` BSD socket addresses, when it's "loopback" (in RFC terms)
+      * hide "OpenSSH special bind addresses" from BSD socket addresses
+    """
+    parts = forward_str.rsplit(":", maxsplit=1)
+
+    try:
+        host, port = parts
+    except ValueError:
+        # only one part, could be either a port or an UNIX domain socket path
+        return forward_str
+
+    # remove square brackets from host (if any)
+    if host.startswith("[") and host.endswith("]"):
+        host = host[1:-1]
+
+    try:
+        target_ip_address = ipaddress.ip_address(host)
+    except ValueError:
+        # not an IP address, return only port if host matches known values
+        if host in OPENSSH_SPECIAL_BIND_ADDRESSES:
+            return port
+    else:
+        if target_ip_address.is_loopback or target_ip_address.is_unspecified:
+            return port
+
+    return forward_str
+
+
 def validate_forward_target(forward_str: str) -> bool:
     """
     Validate OpenSSH client forward target (either source or destination).
@@ -146,7 +185,7 @@ def validate_forward_target(forward_str: str) -> bool:
     try:
         # allow OpenSSH special "bind addresses" as well as any valid domain name
         # parse `host` as an IP address otherwise
-        if host not in ("localhost", "*") and HOSTNAME_REGEXP.match(host) is None:
+        if host not in OPENSSH_SPECIAL_BIND_ADDRESSES and HOSTNAME_REGEXP.match(host) is None:
             ipaddress.ip_address(host)
 
         int(port)

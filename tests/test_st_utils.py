@@ -8,6 +8,7 @@ from sshubl.st_utils import (
     format_ip_addr,
     get_absolute_purepath_flavour,
     parse_ssh_connection,
+    pretty_forward_target,
     validate_forward_target,
 )
 
@@ -71,3 +72,17 @@ class TestStUtils(unittest.TestCase):
         self.assertFalse(validate_forward_target("42:42:[::1]"))
         self.assertFalse(validate_forward_target("idon'tknowwhattotype:42"))
         self.assertFalse(validate_forward_target("example com:42"))
+
+    def test_pretty_forward_target(self) -> None:
+        """pretty_forward_target test cases"""
+        self.assertEqual(pretty_forward_target("42"), "42")
+        self.assertEqual(pretty_forward_target("*:42"), "42")
+        self.assertEqual(pretty_forward_target("[*]:42"), "42")
+        self.assertEqual(pretty_forward_target("[::1]:42"), "42")
+        self.assertEqual(pretty_forward_target("127.0.0.1:42"), "42")
+        self.assertEqual(pretty_forward_target("localhost:42"), "42")
+        self.assertEqual(pretty_forward_target("[localhost]:42"), "42")
+        self.assertEqual(pretty_forward_target("192.0.2.1:42"), "192.0.2.1:42")
+        self.assertEqual(pretty_forward_target("example.com:42"), "example.com:42")
+        self.assertEqual(pretty_forward_target("./unix.socket"), "./unix.socket")
+        self.assertEqual(pretty_forward_target("/path/to/unix.socket"), "/path/to/unix.socket")
