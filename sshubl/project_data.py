@@ -5,7 +5,7 @@ from threading import RLock as ThreadingLock
 
 import sublime
 
-from .st_utils import format_ip_addr
+from .st_utils import format_ip_addr, pretty_forward_target
 
 lock = ThreadingLock()
 
@@ -30,9 +30,9 @@ def update_window_status(window: typing.Optional[sublime.Window] = None):
         (
             ssh_session,
             ", ".join(
-                f"{forward['target_local'].rsplit(':', maxsplit=1)[-1]} "
+                f"{pretty_forward_target(forward['target_local'])} "
                 f"{'<-' if forward['is_reverse'] else '->'} "
-                f"{forward['target_remote'].rsplit(':', maxsplit=1)[-1]}"
+                f"{pretty_forward_target(forward['target_remote'])}"
                 for forward in forwards
             ),
         )

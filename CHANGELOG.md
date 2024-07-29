@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - UNIX domain socket automatic removal on forward cancellation
 
+### Changed
+
+- Only hide forward target host part when it corresponds to a "loopback" or "unspecified" IP address in view statuses
+
 ### Fixed
 
 - Reverse forward opening when remote target is an UNIX domain socket
