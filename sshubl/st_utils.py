@@ -130,7 +130,6 @@ def pre_parse_forward_target(forward_str: str) -> typing.Tuple[str, typing.Optio
     For UNIX domain socket paths, "port" tuple part will be `None`.
 
     IPv6 address enclosures are removed from "host" tuple part.
-    If port cannot be parsed into integer, "port" tuple part will be `None`.
     """
     parts = forward_str.rsplit(":", maxsplit=1)
 
