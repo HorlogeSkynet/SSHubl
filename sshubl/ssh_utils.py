@@ -13,6 +13,7 @@ import sublime
 from pexpect import pxssh
 
 from .paths import mounts_path, sockets_path
+from .st_utils import pre_parse_forward_target
 
 _logger = logging.getLogger(__package__)
 
@@ -276,9 +277,9 @@ def ssh_forward(
 
     # if port is expected to be dynamically-allocated by remote, update `target_remote` to allow
     # future forward requests to re-use the same port
-    split_target_1 = target_1.rsplit(":", maxsplit=1)
+    target_1_host, target_1_port_str = pre_parse_forward_target(target_1)
     try:
-        target_1_port = int(split_target_1[-1])
+        target_1_port = int(target_1_port_str or "")
     except ValueError:
         target_1_port = None
     if do_open and is_reverse and target_1_port == 0:
@@ -292,8 +293,7 @@ def ssh_forward(
                 remote_port,
                 target_local,
             )
-            split_target_1[-1] = str(remote_port)
-            target_remote = ":".join(split_target_1)
+            target_remote = f"{target_1_host}:{remote_port}"
 
     # when closing an UNIX domain socket forward, also remove socket from disk to allow future
     # forward requests to re-use the same path

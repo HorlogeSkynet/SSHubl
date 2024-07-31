@@ -122,10 +122,35 @@ def parse_ssh_connection(connection_str: str) -> typing.Tuple[str, int, str, typ
     )
 
 
-@functools.lru_cache()
-def pretty_forward_target(forward_str) -> str:
+def pre_parse_forward_target(forward_str: str) -> typing.Tuple[str, typing.Optional[str]]:
     """
-    Pretty forward target formatter.
+    (pre-)Parse OpenSSH client forward target string.
+
+    This function returns tuple separating "host" and "port", for BSD socket address.
+    For UNIX domain socket paths, "port" tuple part will be `None`.
+
+    IPv6 address enclosures are removed from "host" tuple part.
+    If port cannot be parsed into integer, "port" tuple part will be `None`.
+    """
+    parts = forward_str.rsplit(":", maxsplit=1)
+
+    try:
+        host, port = parts
+    except ValueError:
+        # only one part, `forward_str` could be either a port or an UNIX domain socket path
+        host, port = forward_str, None
+    else:
+        # remove square brackets from host (if any)
+        if host.startswith("[") and host.endswith("]"):
+            host = host[1:-1]
+
+    return host, port
+
+
+@functools.lru_cache()
+def pretty_forward_target(forward_str: str) -> str:
+    """
+    Pretty format OpenSSH client forward target string.
 
     These rules applied :
       * do not alter UNIX domain socket paths
@@ -134,17 +159,9 @@ def pretty_forward_target(forward_str) -> str:
       * hide `host` from `host:port` BSD socket addresses, when it's "loopback" (in RFC terms)
       * hide "OpenSSH special bind addresses" from BSD socket addresses
     """
-    parts = forward_str.rsplit(":", maxsplit=1)
-
-    try:
-        host, port = parts
-    except ValueError:
-        # only one part, could be either a port or an UNIX domain socket path
-        return forward_str
-
-    # remove square brackets from host (if any)
-    if host.startswith("[") and host.endswith("]"):
-        host = host[1:-1]
+    host, port = pre_parse_forward_target(forward_str)
+    if port is None:
+        return host
 
     try:
         target_ip_address = ipaddress.ip_address(host)
@@ -153,6 +170,7 @@ def pretty_forward_target(forward_str) -> str:
         if host in OPENSSH_SPECIAL_BIND_ADDRESSES:
             return port
     else:
+        # IP address, return only port if it's considered "loopback" or "unspecified"
         if target_ip_address.is_loopback or target_ip_address.is_unspecified:
             return port
 
@@ -170,17 +188,9 @@ def validate_forward_target(forward_str: str) -> bool:
       * [bind_address_v6]:port
       * socket
     """
-    parts = forward_str.rsplit(":", maxsplit=1)
-
-    try:
-        host, port = parts
-    except ValueError:
-        # only one part, could be either a port or an UNIX domain socket path
+    host, port = pre_parse_forward_target(forward_str)
+    if port is None:
         return True
-
-    # remove square brackets from host (if any)
-    if host.startswith("[") and host.endswith("]"):
-        host = host[1:-1]
 
     try:
         # allow OpenSSH special "bind addresses" as well as any valid domain name
