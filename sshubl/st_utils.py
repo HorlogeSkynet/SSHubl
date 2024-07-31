@@ -177,6 +177,7 @@ def pretty_forward_target(forward_str: str) -> str:
     return forward_str
 
 
+@functools.lru_cache()
 def validate_forward_target(forward_str: str) -> bool:
     """
     Validate OpenSSH client forward target (either source or destination).
