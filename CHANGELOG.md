@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Reverse forward opening when remote target is an UNIX domain socket
+- Reverse forward with remote port allocation (e.g. `-R 127.0.0.1:0:[...]`) isn't removed from session on cancellation
 
 ## [0.2.1] - 2024-07-14
 

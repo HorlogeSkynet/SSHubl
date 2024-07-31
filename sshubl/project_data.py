@@ -119,12 +119,12 @@ class SshSession:
         """
         return (
             forward_1["is_reverse"],
-            forward_1["target_local"],
-            forward_1["target_remote"],
+            forward_1["orig_target_1"],
+            forward_1["orig_target_2"],
         ) == (
             forward_2["is_reverse"],
-            forward_2["target_local"],
-            forward_2["target_remote"],
+            forward_2["orig_target_1"],
+            forward_2["orig_target_2"],
         )
 
     @classmethod
