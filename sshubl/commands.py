@@ -30,7 +30,7 @@ from .st_utils import (
 )
 
 # this lock is used to prevent multiple `SshConnectPassword` window commands to run simultaneously
-# Development note : this lock **must not** be blocking not re-entrant as commands are run by an
+# Development note : this lock **must not** be blocking nor re-entrant as commands are run by an
 #                    unique (separate) thread that would be globally blocked
 ssh_connect_password_command_lock = ThreadingLock()
 
