@@ -299,11 +299,12 @@ def ssh_forward(
     # forward requests to re-use the same path
     if not do_open and target_1_port is None:
         if is_reverse:
+            unix_socket_path = shlex.quote(target_1)
             if (
-                ssh_exec(identifier, ("rm", "-f", shlex.quote(target_1))) is None
-                and ssh_exec(identifier, ("del", "/q", shlex.quote(target_1))) is None
+                ssh_exec(identifier, ("rm", "-f", unix_socket_path)) is None
+                and ssh_exec(identifier, ("del", "/q", unix_socket_path)) is None
             ):
-                _logger.warning("couldn't remove remote UNIX domain socket")
+                _logger.warning("couldn't remove remote UNIX domain socket : %s", unix_socket_path)
         else:
             Path(target_1).unlink(missing_ok=True)
 
