@@ -25,7 +25,7 @@ On Debian : `apt-get install -y sshfs`
 
 ## Installation
 
-<!--
+
 ### With Package Control (recommended)
 
 1. Open your command palette and type in : `Package Control: Install Package`
@@ -33,7 +33,7 @@ On Debian : `apt-get install -y sshfs`
 3. Press `Enter` and you're done !
 
 Package Control dedicated page [here](https://packagecontrol.io/packages/SSHubl).
--->
+
 
 ### Manually
 
