@@ -11,7 +11,7 @@ This plugin aims to grant the power of (Open)SSH to Sublime Text. Included featu
 * Open forward and reverse ports (or UNIX domain sockets)
 * Automatic environment re-setup on [project](https://www.sublimetext.com/docs/projects.html) opening
 
-It has been inspired by Visual Studio Code's [Remote - SSH](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh) plugin, **without** the inconvenient of depending on a remote agent running on the SSH server.
+It has been inspired by Visual Studio Code [Remote - SSH](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh) plugin, **without** the drawback of depending on a remote agent running on the SSH server.
 
 ## Dependencies
 
@@ -66,7 +66,7 @@ Open your command palette and type in `SSHubl` to select `Connect to server`. On
 	"ssh_options": {
 		//"ConnectTimeout": 30,
 	},
-	// Custom login timeout for (pexpect)
+	// Custom login timeout (for pexpect)
 	"ssh_login_timeout": 10,
 	// Set to `false` to disable host authentication for loopback addresses (cf. NoHostAuthenticationForLocalhost)
 	"ssh_host_authentication_for_localhost": true,
