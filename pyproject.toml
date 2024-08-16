@@ -26,9 +26,5 @@ ignore_missing_imports = true
 module = "sublime_plugin.*"
 ignore_missing_imports = true
 
-[[tool.mypy.overrides]]
-module = "package_control.*"
-ignore_missing_imports = true
-
 [tool.ruff]
 line-length = 100

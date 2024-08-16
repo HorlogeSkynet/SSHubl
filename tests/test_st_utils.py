@@ -2,11 +2,15 @@
 
 import unittest
 from pathlib import PurePosixPath, PureWindowsPath
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
+import sublime_plugin
+
+from sshubl.commands import SshTerminalCommand
 from sshubl.st_utils import (
     format_ip_addr,
     get_absolute_purepath_flavour,
+    get_command_class,
     parse_ssh_connection,
     pretty_forward_target,
     validate_forward_target,
@@ -15,6 +19,35 @@ from sshubl.st_utils import (
 
 class TestStUtils(unittest.TestCase):
     """st_utils test cases"""
+
+    def test_get_command_class(self) -> None:
+        """get_command_class test cases"""
+
+        class TestFakeCommand(sublime_plugin.WindowCommand):
+            pass
+
+        window_command_classes_mock = MagicMock()
+        window_command_classes_mock.__iter__.return_value = [
+            TestFakeCommand,
+            SshTerminalCommand,
+        ]
+
+        with patch(
+            "sshubl.st_utils.sublime_plugin.window_command_classes", window_command_classes_mock
+        ):
+            # unknown command, looked up twice
+            self.assertIsNone(get_command_class("_UnknownCommand"))
+            self.assertIsNone(get_command_class("_UnknownCommand"))
+            self.assertEqual(window_command_classes_mock.__iter__.call_count, 2)
+
+            window_command_classes_mock.reset_mock()
+
+            # SSHubl own `ssh_terminal` command, looked up and found once
+            self.assertIs(get_command_class("SshTerminalCommand"), SshTerminalCommand)
+            self.assertIs(get_command_class("SshTerminalCommand"), SshTerminalCommand)
+            self.assertEqual(window_command_classes_mock.__iter__.call_count, 1)
+
+            window_command_classes_mock.reset_mock()
 
     def test_format_ip_addr(self) -> None:
         """format_ip_addr test cases"""

@@ -2,19 +2,12 @@ import contextlib
 import functools
 import getpass
 import ipaddress
-import itertools
 import re
 import typing
-from pathlib import Path, PurePath, PurePosixPath, PureWindowsPath
+from pathlib import PurePath, PurePosixPath, PureWindowsPath
 from urllib.parse import urlparse
 
-import sublime
-
-try:
-    from package_control.package_manager import PackageManager
-except ModuleNotFoundError:
-    PackageManager = None  # pylint: disable=invalid-name
-
+import sublime_plugin
 
 # hostname regular expression (taken from <https://stackoverflow.com/a/106223>)
 HOSTNAME_REGEXP = re.compile(
@@ -49,26 +42,20 @@ def conditional_cache(no_cache_result: typing.Optional[tuple] = None):
     return decorator
 
 
-@conditional_cache(no_cache_result=(False,))
-def is_package_installed(package_name: str) -> bool:
+@conditional_cache(no_cache_result=(None,))
+def get_command_class(class_name: str) -> typing.Optional[typing.Type[sublime_plugin.Command]]:
     """
-    This function does its best to check whether a Sublime package is installed or not.
-    It lists installed packages using Package Control API (if it's available), with fallback on
-    brain-dead iterations through package folders (case-insensitively).
+    This function does its best to check whether a command is known to Sublime.
+    If it has been found, the command class is returned. `None` is returned otherwise.
 
-    Once a package has been found, result is cached to prevent unnecessary additional lookups.
+    Once a command has been found, result is cached to prevent unnecessary additional lookups.
+    At the moment, only Sublime "window commands" are processed.
     """
-    if PackageManager is not None:
-        return package_name in PackageManager().list_packages()
+    for command_class in sublime_plugin.window_command_classes:
+        if command_class.__name__ == class_name:
+            return command_class
 
-    for installed_package in itertools.chain(
-        Path(sublime.installed_packages_path()).iterdir(),
-        Path(sublime.packages_path()).iterdir(),
-    ):
-        if package_name.casefold() == installed_package.stem.casefold():
-            return True
-
-    return False
+    return None
 
 
 @functools.lru_cache()
