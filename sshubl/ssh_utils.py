@@ -97,10 +97,6 @@ def ssh_connect(
         }
     )
 
-    # pexpect v4.8 is currently packaged for Sublime Text so it still specifies old
-    # `RSAAuthentication` option
-    ssh.SSH_OPTS = "-o PubkeyAuthentication=no"
-
     # if a password has been given, force password authentication
     if password is not None:
         ssh.force_password = True
