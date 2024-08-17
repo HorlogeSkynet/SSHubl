@@ -1,4 +1,4 @@
-pexpect~=4.8.0
+pexpect~=4.9.0
 
 pylint~=3.2.7
 pylint-secure-coding-standard~=1.5.1

@@ -83,7 +83,7 @@ Open your command palette and type in `SSHubl` to select `Connect to server`. On
 
 ### Why can I connect to new hosts without accepting their fingerprint ?
 
-> `pexpect` package is [known to always accept remotes' public key](https://github.com/pexpect/pexpect/blob/4.8.0/pexpect/pxssh.py#L411-L414), and it isn't configurable.
+> `pexpect` package is [known to always accept remotes' public key](https://github.com/pexpect/pexpect/blob/4.9/pexpect/pxssh.py#L411-L414), and it isn't configurable.
 
 ### How is "SSHubl" pronounced ?
 
