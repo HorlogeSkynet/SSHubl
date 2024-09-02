@@ -2,6 +2,10 @@
 
 > A Sublime Text 4+ plugin for your SSH connections
 
+<p align="center">
+	<a href="https://packagecontrol.io/packages/SSHubl"><img src="https://img.shields.io/packagecontrol/dm/SSHubl?style=for-the-badge"></a>
+</p>
+
 ## Introduction
 
 This plugin aims to grant the power of (Open)SSH to Sublime Text. Included features are :
