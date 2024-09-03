@@ -24,7 +24,7 @@ from .ssh_utils import (
 from .st_utils import (
     format_ip_addr,
     get_absolute_purepath_flavour,
-    is_package_installed,
+    get_command_class,
     parse_ssh_connection,
     validate_forward_target,
 )
@@ -708,10 +708,11 @@ class SshCloseDirCommand(sublime_plugin.TextCommand):
 class SshTerminalCommand(sublime_plugin.TextCommand):
     @_with_session_identifier
     def run(self, _edit, identifier: str):
-        # check Terminus third-party package is actually installed before continuing.
+        # check for Terminus `terminus_open` command support before actually continuing.
         # we check for a (hidden) setting which allows package lookup bypass for developers who know
         # what they're doing
-        if not _settings().get("terminus_is_installed") and not is_package_installed("Terminus"):
+        terminus_open_command = get_command_class("TerminusOpenCommand")
+        if not _settings().get("terminus_is_installed") and terminus_open_command is None:
             sublime.error_message("Please install Terminus package to open a remote terminal !")
             return
 
@@ -721,18 +722,22 @@ class SshTerminalCommand(sublime_plugin.TextCommand):
         ssh_session = SshSession.get_from_project_data(session_identifier, window)
         title = str(ssh_session) if ssh_session is not None else None
 
-        window.run_command(
-            "terminus_open",
-            {
-                "shell_cmd": shlex.join(
-                    get_base_ssh_cmd(
-                        session_identifier,
-                        ("-q",),
-                    )
-                ),
-                "title": title,
-            },
-        )
+        terminus_open_args: typing.Dict[str, typing.Any] = {
+            "shell_cmd": shlex.join(get_base_ssh_cmd(session_identifier, ("-q",))),
+            "title": title,
+        }
+
+        # Disable spellcheck in terminal view as it's usually irrelevant and report many misspelled
+        # words on shells. Moreover, as we're connected to a different host it's even likely local
+        # and remote locales do not match. Although, as it's an opinionated take, we also check for
+        # a(nother) hidden setting before doing so :-)
+        # Development note : `view_settings` argument is only supported by Terminus v0.3.32+
+        if not _settings().get("honor_spell_check"):
+            terminus_open_args["view_settings"] = {
+                "spell_check": False,
+            }
+
+        window.run_command("terminus_open", terminus_open_args)
 
     def is_enabled(self):
         return bool(SshSession.get_identifiers_from_project_data(self.view.window()))
