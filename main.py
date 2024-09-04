@@ -10,8 +10,8 @@ for suffix in (
     "paths",
     # utilities
     "project_data",
-    "ssh_utils",
     "st_utils",
+    "ssh_utils",
     # controllers
     "actions",
     # commands and listeners (at last, as they depend on other modules)
@@ -30,7 +30,9 @@ else:
         SshCancelForwardCommand,
         SshCloseDirCommand,
         SshConnectCommand,
+        SshConnectInteractiveCommand,
         SshConnectPasswordCommand,
+        SshInteractiveConnectionWatcherCommand,
         SshDisconnectCommand,
         SshOpenDirCommand,
         SshRequestForwardCommand,
