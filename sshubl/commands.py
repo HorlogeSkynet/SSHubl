@@ -14,17 +14,21 @@ from .actions import (
     SshDisconnect,
     SshForward,
     SshMountSshfs,
+    SshInteractiveConnectionWatcher,
     schedule_ssh_connect_password_command,
 )
 from .project_data import SshSession
 from .ssh_utils import (
+    IS_NONINTERACTIVE_SUPPORTED,
     get_base_ssh_cmd,
+    platformlex,
     ssh_exec,
+    ssh_connect_interactive,
 )
 from .st_utils import (
     format_ip_addr,
     get_absolute_purepath_flavour,
-    get_command_class,
+    is_terminus_installed,
     parse_ssh_connection,
     validate_forward_target,
 )
@@ -158,16 +162,24 @@ class _SshSessionInputHandler(sublime_plugin.ListInputHandler):
 
 
 class _ConnectInputHandler(sublime_plugin.TextInputHandler):
+    def __init__(self, *args, with_password: bool = True, **kwargs):
+        self.with_password = with_password
+
+        super().__init__(*args, **kwargs)
+
     def name(self):
         return "connection_str"
 
     def placeholder(self):
-        return "user[:password]@host[:port]"
+        return f"user{'[:password]' if self.with_password else ''}@host[:port]"
 
     def validate(self, text):
         try:
-            host, *_ = parse_ssh_connection(text)
+            host, _, __, password = parse_ssh_connection(text)
         except ValueError:
+            return False
+
+        if not self.with_password and password is not None:
             return False
 
         return bool(host)
@@ -176,6 +188,9 @@ class _ConnectInputHandler(sublime_plugin.TextInputHandler):
 class SshConnectCommand(sublime_plugin.TextCommand):
     def run(self, _edit, connection_str: str):
         SshConnect(self.view, connection_str).start()
+
+    def is_enabled(self):
+        return IS_NONINTERACTIVE_SUPPORTED
 
     def input(self, _args):
         return _ConnectInputHandler()
@@ -323,6 +338,40 @@ class SshConnectPasswordCommand(sublime_plugin.WindowCommand):
                 )
         finally:
             ssh_connect_password_command_lock.release()
+
+
+class SshConnectInteractiveCommand(sublime_plugin.TextCommand):
+    def run(self, _edit, connection_str: str):
+        ssh_connect_interactive(connection_str, window=self.view.window())
+
+    def input(self, _args):
+        return _ConnectInputHandler(with_password=False)
+
+    def input_description(self):
+        return "SSH: Connect to server"
+
+
+class SshInteractiveConnectionWatcherCommand(sublime_plugin.TextCommand):
+    """
+    (Hidden) command which only purpose is to be called by Terminus (setup via `post_view_hooks` in
+    `ssh_connect_interactive`) to watch interactive SSH connections and eventually store session in
+    project data.
+    """
+
+    def run(  # pylint: disable=too-many-arguments
+        self,
+        _edit,
+        connection_str: str,
+        identifier: str,
+        mounts: typing.Optional[typing.Dict[str, str]] = None,
+        forwards: typing.Optional[typing.List[dict]] = None,
+    ):
+        SshInteractiveConnectionWatcher(
+            self.view, uuid.UUID(identifier), connection_str, mounts, forwards
+        ).start()
+
+    def is_visible(self):
+        return False
 
 
 class SshDisconnectCommand(sublime_plugin.TextCommand):
@@ -708,11 +757,7 @@ class SshCloseDirCommand(sublime_plugin.TextCommand):
 class SshTerminalCommand(sublime_plugin.TextCommand):
     @_with_session_identifier
     def run(self, _edit, identifier: str):
-        # check for Terminus `terminus_open` command support before actually continuing.
-        # we check for a (hidden) setting which allows package lookup bypass for developers who know
-        # what they're doing
-        terminus_open_command = get_command_class("TerminusOpenCommand")
-        if not _settings().get("terminus_is_installed") and terminus_open_command is None:
+        if not is_terminus_installed():
             sublime.error_message("Please install Terminus package to open a remote terminal !")
             return
 
@@ -723,14 +768,14 @@ class SshTerminalCommand(sublime_plugin.TextCommand):
         title = str(ssh_session) if ssh_session is not None else None
 
         terminus_open_args: typing.Dict[str, typing.Any] = {
-            "shell_cmd": shlex.join(get_base_ssh_cmd(session_identifier, ("-q",))),
+            "shell_cmd": platformlex.join(get_base_ssh_cmd(session_identifier, ("-q",))),
             "title": title,
         }
 
         # Disable spellcheck in terminal view as it's usually irrelevant and report many misspelled
         # words on shells. Moreover, as we're connected to a different host it's even likely local
         # and remote locales do not match. Although, as it's an opinionated take, we also check for
-        # a(nother) hidden setting before doing so :-)
+        # a hidden setting before doing so :-)
         # Development note : `view_settings` argument is only supported by Terminus v0.3.32+
         if not _settings().get("honor_spell_check"):
             terminus_open_args["view_settings"] = {

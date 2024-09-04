@@ -22,8 +22,8 @@ It has been inspired by Visual Studio Code [Remote - SSH](https://marketplace.vi
 * Sublime Text 4081+
 * OpenSSH client
 * sshfs (FUSE) client
-* pexpect (Python package)
-* [Terminus](https://packagecontrol.io/packages/Terminus) (Sublime Text package, for remote terminal feature)
+* pexpect Python package (used for non-interactive SSH connection on Linux/macOS)
+* [Terminus](https://packagecontrol.io/packages/Terminus) Sublime Text package (used for remote terminal feature on Linux/macOS, **required** on Windows)
 
 On Debian : `apt-get install -y sshfs`
 
@@ -43,8 +43,9 @@ Package Control dedicated page [here](https://packagecontrol.io/packages/SSHubl)
 
 1. Go to the Sublime Text packages folder (usually `$HOME/.config/sublime-text/Packages/` or `%AppData%\Sublime Text\Packages\`)
 2. Clone this repository there : `git clone https://github.com/HorlogeSkynet/SSHubl.git`
-3. Satisfy `pexpect` and `ptyprocess` third-party dependencies in Sublime Text `Lib/python38/` folder (see [here](https://stackoverflow.com/a/61200528) for further information)
-4. Restart Sublime Text and... :tada:
+3. \[Linux/macOS\] Satisfy either `pexpect` and `ptyprocess` third-party dependencies in Sublime Text `Lib/python38/` folder (see [here](https://stackoverflow.com/a/61200528) for further information) or [Terminus](https://packagecontrol.io/packages/Terminus) Sublime Text package dependency
+4. \[Windows\] Satisfy [Terminus](https://packagecontrol.io/packages/Terminus) Sublime Text package dependency
+5. Restart Sublime Text and... :tada:
 
 ## Usage
 
@@ -81,7 +82,7 @@ Open your command palette and type in `SSHubl` to select `Connect to server`. On
 
 ## Frequently Asked Questions
 
-### Why can I connect to new hosts without accepting their fingerprint ?
+### Why can I non-interactively connect to new hosts without accepting their fingerprint ?
 
 > `pexpect` package is [known to always accept remotes' public key](https://github.com/pexpect/pexpect/blob/4.9/pexpect/pxssh.py#L411-L414), and it isn't configurable.
 

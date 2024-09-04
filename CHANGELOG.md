@@ -9,11 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Interactive SSH connection (through Terminus)
 - Disable spellcheck in remote terminal view (Terminus v0.3.32+)
 
 ### Fixed
 
+- Plugin loading on Windows
 - `ssh_host_authentication_for_localhost` cannot be disabled
+
+### Removed
+
+- `terminus_is_installed` (hidden) setting
 
 ## [0.4.0] - 2024-08-07
 
