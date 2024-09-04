@@ -17,6 +17,10 @@
 								"caption": "Connect to server"
 							},
 							{
+								"command": "ssh_connect",
+								"caption": "Connect to server (interactively)"
+							},
+							{
 								"command": "ssh_disconnect",
 								"caption": "Disconnect from server"
 							},
