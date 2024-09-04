@@ -9,11 +9,29 @@ import typing
 import uuid
 from pathlib import Path, PurePath
 
+try:
+    from pexpect import pxssh
+except ImportError:
+    IS_NONINTERACTIVE_SUPPORTED = False
+else:
+    IS_NONINTERACTIVE_SUPPORTED = True
 import sublime
-from pexpect import pxssh
 
 from .paths import mounts_path, sockets_path
-from .st_utils import pre_parse_forward_target
+from .st_utils import (
+    format_ip_addr,
+    is_terminus_installed,
+    parse_ssh_connection,
+    pre_parse_forward_target,
+)
+from .vendor import mslex
+
+
+if platform.system() != "Windows":
+    platformlex = shlex
+else:
+    platformlex = mslex  # type: ignore[misc]
+
 
 _logger = logging.getLogger(__package__)
 
@@ -21,6 +39,10 @@ _logger = logging.getLogger(__package__)
 def _settings():
     return sublime.load_settings("SSHubl.sublime-settings")
 
+
+# We double-quote OpenSSH option values to properly deal with white-spaces. From our tests, this is
+# the only way to correctly deal with UNIX **and** Windows once escaping has been done.
+OPENSSH_OPTION = '-o{0}="{1}"'
 
 ssh_program = _settings().get("ssh_path") or shutil.which("ssh")
 sshfs_program = _settings().get("sshfs_path") or shutil.which("sshfs")
@@ -48,10 +70,10 @@ def get_base_ssh_cmd(
 
     base_ssh_cmd = [
         program_path,
-        f"-oControlPath={str(sockets_path / str(identifier))}",
+        OPENSSH_OPTION.format("ControlPath", sockets_path / str(identifier)),
         # Prevent connection to fake 'destination" if control master is unavailable (inspired by
         # <https://serverfault.com/a/914779>)
-        "-oProxyCommand='exit 1'",
+        OPENSSH_OPTION.format("ProxyCommand", "exit 1"),
         *args,
     ]
 
@@ -60,6 +82,18 @@ def get_base_ssh_cmd(
         base_ssh_cmd.append("destination")
 
     return base_ssh_cmd
+
+
+def get_ssh_master_options(identifier: uuid.UUID) -> dict:
+    return {
+        **_settings().get("ssh_options", {}),
+        # enforce keep-alive for future sshfs usages (see upstream recommendations)
+        "ServerAliveInterval": str(_settings().get("ssh_server_alive_interval", 15)),
+        "ControlMaster": "auto",
+        "ControlPath": str(sockets_path / str(identifier)),
+        # keep connection opened for 1 minute (without new connection to control socket)
+        "ControlPersist": "60",
+    }
 
 
 def ssh_connect(
@@ -81,21 +115,14 @@ def ssh_connect(
     """
     if ssh_program is None:
         raise RuntimeError(f"{ssh_program} has not been found !")
+    if not IS_NONINTERACTIVE_SUPPORTED:
+        raise RuntimeError("Non-interactive connection isn't supported !")
 
-    identifier = identifier or uuid.uuid4()
+    if identifier is None:
+        identifier = uuid.uuid4()
 
     # run OpenSSH using pexpect to setup connection and non-interactively deal with prompts
-    ssh = pxssh.pxssh(
-        options={
-            **_settings().get("ssh_options", {}),
-            # enforce keep-alive for future sshfs usages (see upstream recommendations)
-            "ServerAliveInterval": str(_settings().get("ssh_server_alive_interval", 15)),
-            "ControlMaster": "auto",
-            "ControlPath": str(sockets_path / str(identifier)),
-            # keep connection opened for 1 minute (without new connection to control socket)
-            "ControlPersist": "60",
-        }
-    )
+    ssh = pxssh.pxssh(options=get_ssh_master_options(identifier))
 
     # if a password has been given, force password authentication
     if password is not None:
@@ -123,6 +150,68 @@ def ssh_connect(
         return None
 
     return identifier
+
+
+def ssh_connect_interactive(
+    connection_str: str,
+    identifier: typing.Optional[uuid.UUID] = None,
+    mounts: typing.Optional[typing.Dict[str, str]] = None,
+    forwards: typing.Optional[typing.List[dict]] = None,
+    window: typing.Optional[sublime.Window] = None,
+) -> None:
+    if ssh_program is None:
+        raise RuntimeError(f"{ssh_program} has not been found !")
+
+    if not is_terminus_installed():
+        sublime.error_message("Please install Terminus package to connect interactively !")
+        return
+
+    if window is None:
+        window = sublime.active_window()
+
+    if identifier is None:
+        identifier = uuid.uuid4()
+
+    ssh_options = get_ssh_master_options(identifier)
+    if not _settings().get("ssh_host_authentication_for_localhost", True):
+        ssh_options["NoHostAuthenticationForLocalhost"] = "yes"
+
+    host, port, login, _ = parse_ssh_connection(connection_str)
+
+    terminus_open_args: typing.Dict[str, typing.Any] = {
+        "shell_cmd": platformlex.join(
+            (
+                ssh_program,
+                f"-l{login}",
+                f"-p{port}",
+                *[OPENSSH_OPTION.format(key, value) for key, value in ssh_options.items()],
+                host,
+            )
+        ),
+        "title": f"{login}@{format_ip_addr(host)}:{port}",
+        "auto_close": "on_success",
+        "post_view_hooks": [
+            # makes Terminus executes a command which will wait for SSH connection to actually
+            # succeed before storing session in project data
+            (
+                "ssh_interactive_connection_watcher",
+                {
+                    "identifier": str(identifier),
+                    "connection_str": connection_str,
+                    "mounts": mounts,
+                    "forwards": forwards,
+                },
+            ),
+        ],
+    }
+
+    # Development note : please see `SshTerminalCommand` own documentation for below block rationale
+    if not _settings().get("honor_spell_check"):
+        terminus_open_args["view_settings"] = {
+            "spell_check": False,
+        }
+
+    window.run_command("terminus_open", terminus_open_args)
 
 
 def ssh_disconnect(identifier: uuid.UUID) -> None:

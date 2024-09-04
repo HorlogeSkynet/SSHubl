@@ -8,10 +8,12 @@ ST_REQUIRED_MINIMUM_VERSION = 4081
 for suffix in (
     # constants
     "paths",
+    # vendors
+    "vendor.mslex",
     # utilities
     "project_data",
-    "ssh_utils",
     "st_utils",
+    "ssh_utils",
     # controllers
     "actions",
     # commands and listeners (at last, as they depend on other modules)
@@ -30,7 +32,9 @@ else:
         SshCancelForwardCommand,
         SshCloseDirCommand,
         SshConnectCommand,
+        SshConnectInteractiveCommand,
         SshConnectPasswordCommand,
+        SshInteractiveConnectionWatcherCommand,
         SshDisconnectCommand,
         SshOpenDirCommand,
         SshRequestForwardCommand,
