@@ -96,13 +96,14 @@ def remove_from_project_folders(
 
 
 @dataclasses.dataclass
-class SshSession:
+class SshSession:  # pylint: disable=too-many-instance-attributes
     identifier: str
     host: str
     port: int
     login: str
     mounts: typing.Dict[str, str] = dataclasses.field(default_factory=dict)
     forwards: typing.List[typing.Dict[str, typing.Any]] = dataclasses.field(default_factory=list)
+    is_interactive: bool = False
     is_up: typing.Optional[bool] = True
 
     def __str__(self) -> str:
@@ -167,6 +168,7 @@ class SshSession:
                     #             "target_remote": "127.0.0.1:4242",  // allocated by remote
                     #         },
                     #     ],
+                    #     "is_interactive": false,
                     #     "is_up": true,
                     # },
                 },

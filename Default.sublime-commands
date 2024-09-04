@@ -12,6 +12,13 @@
 		"caption": "SSHubl: Connect to server"
 	},
 	{
+		"command": "ssh_connect_interactive",
+		"caption": "SSHubl: Connect to server (interactively)"
+	},
+	{
+		"command": "ssh_interactive_connection_watcher"
+	},
+	{
 		"command": "ssh_disconnect",
 		"caption": "SSHubl: Disconnect from server"
 	},

@@ -19,6 +19,7 @@ from .ssh_utils import (
     mount_sshfs,
     ssh_check_master,
     ssh_connect,
+    ssh_connect_interactive,
     ssh_disconnect,
     ssh_forward,
     umount_sshfs,
@@ -30,6 +31,49 @@ from .st_utils import (
 )
 
 _logger = logging.getLogger(__package__)
+
+
+def _on_connection(
+    view: sublime.View,
+    ssh_session: SshSession,
+    mounts: typing.Optional[typing.Dict[str, str]] = None,
+    forwards: typing.Optional[typing.List[dict]] = None,
+) -> None:
+    # store SSH session metadata in project data
+    # Development note : on **re-connection**, mounts and forwards are reset here and will be
+    #                    directly re-populated by thread actions below
+    ssh_session.set_in_project_data(view.window())
+
+    _logger.info("successfully connected to %s !", ssh_session)
+
+    update_window_status(view.window())
+
+    # re-mount and re-open previous remote folders (if any)
+    for mount_path, remote_path in (mounts or {}).items():
+        SshMountSshfs(
+            view,
+            uuid.UUID(ssh_session.identifier),
+            # here paths are strings due to JSON serialization, infer flavour back for remote
+            mount_path=Path(mount_path),
+            remote_path=typing.cast(PurePath, get_absolute_purepath_flavour(remote_path)),
+        ).start()
+
+    # re-open previous forwards (if any)
+    for forward in forwards or []:
+        # infer original forwarding rule from "local" and "remote" targets
+        is_reverse = forward["is_reverse"]
+        target_1, target_2 = (
+            forward["target_remote"] if is_reverse else forward["target_local"],
+            forward["target_local"] if is_reverse else forward["target_remote"],
+        )
+
+        SshForward(
+            view,
+            uuid.UUID(ssh_session.identifier),
+            is_reverse,
+            target_1,
+            target_2,
+        ).start()
 
 
 class SshConnect(Thread):
@@ -91,45 +135,91 @@ class SshConnect(Thread):
         finally:
             self.view.erase_status("zz_connection_in_progress")
 
-        if identifier is None:
-            return
-
-        # store SSH session metadata in project data
-        # Development note : on **re-connection**, mounts and forwards are reset here and will be
-        #                    directly re-populated by thread actions below
-        ssh_session = SshSession(str(identifier), host, port, login)
-        ssh_session.set_in_project_data(self.view.window())
-
-        _logger.info("successfully connected to %s !", ssh_session)
-
-        update_window_status(self.view.window())
-
-        # re-mount and re-open previous remote folders (if any)
-        for mount_path, remote_path in self.mounts.items():
-            SshMountSshfs(
+        if identifier is not None:
+            _on_connection(
                 self.view,
-                identifier,
-                # here paths are strings due to JSON serialization, infer flavour back for remote
-                mount_path=Path(mount_path),
-                remote_path=typing.cast(PurePath, get_absolute_purepath_flavour(remote_path)),
-            ).start()
-
-        # re-open previous forwards (if any)
-        for forward in self.forwards:
-            # infer original forwarding rule from "local" and "remote" targets
-            is_reverse = forward["is_reverse"]
-            target_1, target_2 = (
-                forward["target_remote"] if is_reverse else forward["target_local"],
-                forward["target_local"] if is_reverse else forward["target_remote"],
+                SshSession(str(identifier), host, port, login),
+                self.mounts,
+                self.forwards,
             )
 
-            SshForward(
-                self.view,
-                identifier,
-                is_reverse,
-                target_1,
-                target_2,
-            ).start()
+
+class SshInteractiveConnectionWatcher(Thread):
+    def __init__(  # pylint: disable=too-many-arguments
+        self,
+        view: sublime.View,
+        identifier: uuid.UUID,
+        connection_str: str,
+        mounts: typing.Optional[typing.Dict[str, str]] = None,
+        forwards: typing.Optional[typing.List[dict]] = None,
+    ):
+        self.view = view
+        self.identifier = identifier
+        self.connection_str = connection_str
+
+        # below attributes are only used in case of re-connection
+        self.mounts = mounts or {}
+        self.forwards = forwards or []
+
+        super().__init__()
+
+    def run(self):
+        _logger.debug(
+            "interactive connection watcher is starting up for %s (view=%d)...",
+            self.identifier,
+            self.view.id(),
+        )
+
+        host, port, login, _ = parse_ssh_connection(self.connection_str)
+
+        _logger.debug(
+            "SSH connection string is : %s@%s:%d",
+            login,
+            format_ip_addr(host),
+            port,
+        )
+
+        self.view.set_status(
+            "zz_connection_in_progress",
+            f"Connecting to ssh://{login}@{format_ip_addr(host)}:{port}...",
+        )
+        try:
+            while True:
+                # we fetch view "validity" _here_ to prevent a race condition when user closes the
+                # view right *after* we actually checked whether connection succeeded.
+                is_view_valid = self.view.is_valid()
+
+                # when master is considered "up" (i.e. client successfully connected to server), run
+                # connection postlude and leave
+                if ssh_check_master(self.identifier):
+                    _on_connection(
+                        self.view,
+                        SshSession(str(self.identifier), host, port, login, is_interactive=True),
+                        self.mounts,
+                        self.forwards,
+                    )
+                    break
+
+                # stop this thread if view was closed (i.e. client has terminated)
+                if not is_view_valid:
+                    # if view corresponded to a reconnection attempt, we have to update `is_up`
+                    # session attribute as current attempt failed
+                    with project_data_lock:
+                        ssh_session = SshSession.get_from_project_data(self.identifier)
+                        if ssh_session is not None:
+                            ssh_session.is_up = False
+                            ssh_session.set_in_project_data(self.view.window())
+                    break
+
+                time.sleep(2)
+        finally:
+            self.view.erase_status("zz_connection_in_progress")
+
+        _logger.debug(
+            "interactive connection watcher is shutting down for %s (view=%d)...",
+            self.identifier,
+            self.view.id(),
+        )
 
 
 class SshDisconnect(Thread):
@@ -332,13 +422,22 @@ class SshKeepaliveThread(Thread):
                         continue
 
                     _logger.warning("%s's master is down : attempting to reconnect...", ssh_session)
-                    SshConnect(
-                        self.window.active_view(),
-                        str(ssh_session),
-                        session_identifier,
-                        ssh_session.mounts,
-                        ssh_session.forwards,
-                    ).start()
+                    if ssh_session.is_interactive:
+                        ssh_connect_interactive(
+                            str(ssh_session),
+                            session_identifier,
+                            ssh_session.mounts,
+                            ssh_session.forwards,
+                            self.window,
+                        )
+                    else:
+                        SshConnect(
+                            self.window.active_view(),
+                            str(ssh_session),
+                            session_identifier,
+                            ssh_session.mounts,
+                            ssh_session.forwards,
+                        ).start()
 
                     # set "up" status to `None` so we know a re-connection attempt is in progress
                     ssh_session.is_up = None
