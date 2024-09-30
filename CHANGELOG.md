@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Disable spellcheck in remote terminal view (Terminus v0.3.32+)
 
+### Fixed
+
+- `ssh_host_authentication_for_localhost` cannot be disabled
+
 ## [0.4.0] - 2024-08-07
 
 ### Added
