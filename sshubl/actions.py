@@ -250,7 +250,7 @@ class SshMountSshfs(Thread):
 
         self.view.set_status(
             "zz_mounting_sshfs",
-            f"{'M' if self.do_mount else 'Un'}ounting ssh://{ssh_session}{self.remote_path}...",
+            f"{'M' if self.do_mount else 'Unm'}ounting ssh://{ssh_session}{self.remote_path}...",
         )
         try:
             if self.do_mount:
