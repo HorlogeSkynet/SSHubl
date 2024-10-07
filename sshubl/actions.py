@@ -290,7 +290,7 @@ class SshKeepaliveThread(Thread):
     If master fails to answer, a re-connection attempt occurs.
     """
 
-    __LOOP_PERIOD = 15
+    __LOOP_PERIOD = 10
 
     def __init__(self, *args, window: sublime.Window, **kwargs):
         self.window = window
