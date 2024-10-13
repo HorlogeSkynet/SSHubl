@@ -7,6 +7,9 @@ ignored-modules = [
 	"sublime",
 	"sublime_plugin",
 ]
+ignore-paths = [
+	"sshubl/vendor",
+]
 jobs = 0
 load-plugins = [
 	"pylint_secure_coding_standard",
@@ -17,6 +20,9 @@ min-public-methods = 0
 
 [tool.mypy]
 check_untyped_defs = true
+exclude = [
+	"sshubl/vendor",
+]
 
 [[tool.mypy.overrides]]
 module = "sublime.*"
@@ -28,3 +34,6 @@ ignore_missing_imports = true
 
 [tool.ruff]
 line-length = 100
+exclude = [
+	"sshubl/vendor",
+]
