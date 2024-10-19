@@ -58,6 +58,10 @@ def get_command_class(class_name: str) -> typing.Optional[typing.Type[sublime_pl
     return None
 
 
+def is_terminus_installed() -> bool:
+    return get_command_class("TerminusOpenCommand") is not None
+
+
 @functools.lru_cache()
 def format_ip_addr(host: str) -> str:
     """
