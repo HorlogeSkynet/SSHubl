@@ -322,8 +322,8 @@ def ssh_forward(
 
 def ssh_exec(identifier: uuid.UUID, args: typing.Iterable[str]) -> typing.Optional[str]:
     """
-    Execute `args` command using on remote using a remote non-interactive pseudo-TTY.
-    `args` argument **ARE NOT** escaped.
+    Execute `args` command remotely using a non-interactive pseudo-TTY.
+    `args` arguments **ARE NOT** escaped.
     """
     try:
         stdout = subprocess.check_output(
