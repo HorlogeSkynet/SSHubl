@@ -361,7 +361,7 @@ class _ForwardTargetInputHandler(ABC, sublime_plugin.TextInputHandler):
         return self._INITIAL_TEXT
 
     def initial_selection(self):
-        """Disable initial selection and set the cursor next to colon"""
+        # disable initial selection and set the cursor next to colon
         return [(self._INITIAL_TEXT_LENGTH, self._INITIAL_TEXT_LENGTH)]
 
     def validate(self, text):
