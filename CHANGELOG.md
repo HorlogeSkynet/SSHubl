@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Plugin loading on Windows
+- UNIX domain socket removal against Windows remote
 - `ssh_host_authentication_for_localhost` cannot be disabled
 
 ### Removed

@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import typing
 import uuid
-from pathlib import Path, PurePath
+from pathlib import Path, PurePath, PureWindowsPath
 
 try:
     from pexpect import pxssh
@@ -20,6 +20,7 @@ import sublime
 from .paths import mounts_path, sockets_path
 from .st_utils import (
     format_ip_addr,
+    get_absolute_purepath_flavour,
     is_terminus_installed,
     parse_ssh_connection,
     pre_parse_forward_target,
@@ -322,6 +323,23 @@ def umount_sshfs(mount_path: Path) -> None:
         mount_path.rmdir()
 
 
+def _remove_unix_domain_socket(
+    identifier: uuid.UUID, socket_path: str, *, is_reverse: bool
+) -> None:
+    if not is_reverse:
+        Path(socket_path).unlink(missing_ok=True)
+        return
+
+    remove_socket_cmd: typing.Tuple[str, ...]
+    if isinstance(get_absolute_purepath_flavour(socket_path), PureWindowsPath):
+        remove_socket_cmd = ("del", "/q", mslex.quote(socket_path))
+    else:
+        remove_socket_cmd = ("rm", "-f", "--", shlex.quote(socket_path))
+
+    if ssh_exec(identifier, remove_socket_cmd) is None:
+        _logger.warning("couldn't remove remote UNIX domain socket : %s", socket_path)
+
+
 def ssh_forward(
     identifier: uuid.UUID, do_open: bool, is_reverse: bool, target_1: str, target_2: str
 ) -> typing.Optional[dict]:
@@ -383,15 +401,7 @@ def ssh_forward(
     # when closing an UNIX domain socket forward, also remove socket from disk to allow future
     # forward requests to re-use the same path
     if not do_open and target_1_port is None:
-        if is_reverse:
-            unix_socket_path = shlex.quote(target_1)
-            if (
-                ssh_exec(identifier, ("rm", "-f", unix_socket_path)) is None
-                and ssh_exec(identifier, ("del", "/q", unix_socket_path)) is None
-            ):
-                _logger.warning("couldn't remove remote UNIX domain socket : %s", unix_socket_path)
-        else:
-            Path(target_1).unlink(missing_ok=True)
+        _remove_unix_domain_socket(identifier, target_1, is_reverse=is_reverse)
 
     _logger.debug(
         "successfully %s forward %s %s %s",
