@@ -138,7 +138,7 @@ def pretty_forward_target(forward_str: str) -> str:
     """
     Pretty format OpenSSH client forward target string.
 
-    These rules applied :
+    The following rules are applied :
       * do not alter UNIX domain socket paths
       * do not alter `host:port` BSD socket addresses (when host is a domain name)
       * hide `host` from `host:port` BSD socket addresses, when it's "unspecified" (in RFC terms)
