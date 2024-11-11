@@ -4,4 +4,4 @@ pylint~=3.2.7
 pylint-secure-coding-standard~=1.5.1
 mypy~=1.13.0
 types-pexpect
-ruff~=0.7.2
+ruff~=0.7.3
