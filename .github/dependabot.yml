@@ -7,3 +7,7 @@ updates:
     ignore:
       # pexpect is known to be outdated as it's manually packaged for Sublime Text (see https://github.com/varp/sublime-pexpect)
       - dependency-name: "pexpect"
+
+      # ignore "patch" updates for all packages as patch segments are relaxed in requirements-dev.txt
+      - dependency-name: "*"
+        update-types: ["version-update:semver-patch"]
