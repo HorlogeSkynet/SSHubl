@@ -14,6 +14,7 @@ jobs = 0
 load-plugins = [
 	"pylint_secure_coding_standard",
 ]
+py-version = "3.8"
 
 [tool.pylint.DESIGN]
 min-public-methods = 0
@@ -23,6 +24,7 @@ check_untyped_defs = true
 exclude = [
 	"sshubl/vendor",
 ]
+python_version = "3.8"
 
 [[tool.mypy.overrides]]
 module = "sublime.*"
@@ -37,3 +39,4 @@ line-length = 100
 exclude = [
 	"sshubl/vendor",
 ]
+target-version = "py38"
