@@ -3,6 +3,7 @@
 	"ssh_path": null,
 	"sshfs_path": null,
 	"umount_path": null,
+	"sockets_path": null,
 	"ssh_options": {},
 	"ssh_server_alive_interval": 15,
 	"ssh_login_timeout": 10,

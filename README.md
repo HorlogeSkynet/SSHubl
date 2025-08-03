@@ -67,6 +67,10 @@ Open your command palette and type in `SSHubl` to select `Connect to server`. On
 	// Custom path to `umount` program (`fusermount` on Linux)
 	// /!\ This setting requires plugin reload (or Sublime restart)
 	"umount_path": null,
+	// Custom path to OpenSSH control sockets directory
+	// /!\ This setting requires plugin reload (or Sublime restart)
+	// If you hit "path [...] too long for Unix domain socket" error, you may set this to e.g. "/tmp/sshubl"
+	"sockets_path": null,
 	// Custom options to pass to OpenSSH **master** (e.g. useful for bastion traversal)
 	"ssh_options": {
 		//"ConnectTimeout": 30,
