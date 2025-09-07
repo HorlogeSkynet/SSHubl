@@ -11,3 +11,8 @@ updates:
       # ignore "patch" updates for all packages as patch segments are relaxed in requirements-dev.txt
       - dependency-name: "*"
         update-types: ["version-update:semver-patch"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
