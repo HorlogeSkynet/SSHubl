@@ -53,7 +53,10 @@ if platform.system() == "Linux":
     umount_flags: typing.Tuple[str, ...] = ("-q", "-u")
 else:
     umount_program = umount_program or shutil.which("umount")
-    umount_flags = ("-q",)
+    if platform.system() != "Darwin":
+        umount_flags = ("-q",)
+    else:
+        umount_flags = ()
 
 
 class PasswordlessConnectionException(Exception):
