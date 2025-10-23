@@ -8,4 +8,6 @@
 	"ssh_server_alive_interval": 15,
 	"ssh_login_timeout": 10,
 	"ssh_host_authentication_for_localhost": true,
+	"sshfs_arguments": [],
+	"sshfs_mount_follow_symlinks": true,
 }

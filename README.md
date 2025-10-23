@@ -81,6 +81,12 @@ Open your command palette and type in `SSHubl` to select `Connect to server`. On
 	"ssh_host_authentication_for_localhost": true,
 	// Server keepalive interval (as recommended in sshfs documentation)
 	"ssh_server_alive_interval": 15,
+	// Custom arguments to pass to `sshfs` command.
+	// Default to `["-ojail_symlinks", "-onoappledouble", "-onoapplexattr"]` on macOS
+	"sshfs_arguments": [],
+	// Whether sshfs mount should follow symlinks.
+	// Set to `false` to avoid symlink loop issues (e.g. Sublime keeps refreshing folders).
+	"sshfs_follow_symlinks": true,
 }
 ```
 
