@@ -252,7 +252,7 @@ def mount_sshfs(
 
     Some options are passed to sshfs in order to :
         * enable (local) UNIX permissions check
-        * follow remote symbolic links
+        * follow remote symbolic links (if not disabled)
         * map remote user UID/GID to local user
 
     :returns Path: local mount path on success , or `None` on error
@@ -261,15 +261,31 @@ def mount_sshfs(
         mount_path = mounts_path / str(identifier) / f"{remote_path.name}_{uuid.uuid4()}"
     mount_path.mkdir(parents=True, exist_ok=True)
 
+    sshfs_arguments = _settings().get("sshfs_arguments", []).copy()
+    if not sshfs_arguments:
+        if platform.system() == "Darwin":
+            # See <https://github.com/macfuse/macfuse/wiki/Mount-Options> and
+            # <https://github.com/macfuse/macfuse/issues/519> for implied Finder limitations.
+            sshfs_arguments = [
+                "-ojail_symlinks",  # prefix absolute symbolic links by mount point
+                "-onoappledouble",  # deny access to Apple Double and .DS_Store files
+                "-onoapplexattr",  # deny access to xattr beginning with "com.apple." prefix
+            ]
+
+    # follow symbolic links by default
+    # /!\ Symlink loops are known to break Sublime project folders scanning (see #54).
+    if _settings().get("sshfs_mount_follow_symlinks", True):
+        sshfs_arguments.append("-ofollow_symlinks")
+
     try:
         subprocess.check_call(
             get_base_ssh_cmd(
                 identifier,
                 (
+                    # user supplied arguments (and optionally "follow_symlinks")
+                    *sshfs_arguments,
                     # enable local permissions check
                     "-odefault_permissions",
-                    # follow symlinks on the server
-                    "-ofollow_symlinks",
                     # map remote user UID/GID to current user
                     "-oidmap=user",
                     f"-ouid={os.getuid()}",
