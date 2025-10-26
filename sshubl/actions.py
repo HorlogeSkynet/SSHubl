@@ -343,25 +343,23 @@ class SshMountSshfs(Thread):
             f"{'M' if self.do_mount else 'Unm'}ounting ssh://{ssh_session}{self.remote_path}...",
         )
         try:
+            # Do-mounting : mount -> add folder to project
+            # Do-unmounting : remove folder from project -> unmount
             if self.do_mount:
                 mount_path = mount_sshfs(
                     self.identifier, typing.cast(PurePath, self.remote_path), self.mount_path
                 )
+                if mount_path is None:
+                    return
+                add_to_project_folders(
+                    str(mount_path), f"{ssh_session}{self.remote_path}", self.view.window()
+                )
             else:
                 mount_path = typing.cast(Path, self.mount_path)
+                remove_from_project_folders(str(mount_path), self.view.window())
                 umount_sshfs(mount_path)
         finally:
             self.view.erase_status("zz_mounting_sshfs")
-
-        if mount_path is None:
-            return
-
-        if self.do_mount:
-            add_to_project_folders(
-                str(mount_path), f"{ssh_session}{self.remote_path}", self.view.window()
-            )
-        else:
-            remove_from_project_folders(str(mount_path), self.view.window())
 
         # store/remove mount path in/from SSH session metadata
         with project_data_lock:

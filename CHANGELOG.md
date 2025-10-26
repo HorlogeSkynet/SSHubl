@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Unmount on macOS
+- Unmount race conditions related to SSHFS mount point still present in project opened folders
 
 ### Removed
 
