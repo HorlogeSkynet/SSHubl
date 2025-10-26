@@ -87,16 +87,13 @@ class EventListener(sublime_plugin.EventListener):
         #                    attempts will occur when re-opening the same project
         for identifier, ssh_session in SshSession.get_all_from_project_data(window).items():
             for mount_path in ssh_session.mounts:
+                remove_from_project_folders(mount_path, window)
                 umount_sshfs(Path(mount_path))
 
             ssh_disconnect(uuid.UUID(identifier))
 
             ssh_session.is_up = False
             ssh_session.set_in_project_data(window)
-
-            # remove mounts from project folders
-            for mount in ssh_session.mounts:
-                remove_from_project_folders(mount, window)
 
 
 class ViewEventListener(sublime_plugin.ViewEventListener):
