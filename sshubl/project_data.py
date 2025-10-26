@@ -81,8 +81,12 @@ def add_to_project_folders(
 def remove_from_project_folders(
     old_folder: str,
     window: typing.Optional[sublime.Window] = None,
-) -> None:
-    """Mirror function of `add_folder_to_project` (see above)"""
+) -> bool:
+    """
+    Mirror function of `add_folder_to_project` (see above).
+
+    :returns bool: `True` when project has been actually removed, `False` otherwise
+    """
     if window is None:
         window = sublime.active_window()
 
@@ -93,6 +97,10 @@ def remove_from_project_folders(
         if filtered_folders != folders:
             project_data["folders"] = filtered_folders
             window.set_project_data(project_data)
+
+            return True
+
+    return False
 
 
 @dataclasses.dataclass
