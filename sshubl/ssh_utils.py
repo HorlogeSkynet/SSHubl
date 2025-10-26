@@ -316,12 +316,17 @@ def mount_sshfs(
     return mount_path
 
 
-def umount_sshfs(mount_path: Path) -> None:
+def umount_sshfs(mount_path: Path) -> bool:
+    """
+    Unmount `mount_path`, considering it has been mounted using sshfs.
+
+    :returns bool: `True` on success and `False` on error
+    """
     if umount_program is None:
         _logger.warning(
             "%s has not been found, skipping unmounting of %s...", umount_program, mount_path
         )
-        return
+        return False
 
     _logger.debug("unmounting %s...", mount_path)
 
@@ -335,11 +340,14 @@ def umount_sshfs(mount_path: Path) -> None:
         _logger.warning(
             "could not unmount %s : %s", mount_path, (error.stderr or "Unknown error").rstrip()
         )
-    else:
-        _logger.debug("successfully unmounted %s, removing mount point...", mount_path)
+        return False
+
+    _logger.debug("successfully unmounted %s, removing mount point...", mount_path)
 
     with contextlib.suppress(FileNotFoundError):
         mount_path.rmdir()
+
+    return True
 
 
 def _remove_unix_domain_socket(

@@ -349,17 +349,27 @@ class SshMountSshfs(Thread):
                 mount_path = mount_sshfs(
                     self.identifier, typing.cast(PurePath, self.remote_path), self.mount_path
                 )
-                if mount_path is None:
-                    return
-                add_to_project_folders(
-                    str(mount_path), f"{ssh_session}{self.remote_path}", self.view.window()
-                )
+                folder_was_in_project = False
+                is_ok = mount_path is not None
             else:
                 mount_path = typing.cast(Path, self.mount_path)
-                remove_from_project_folders(str(mount_path), self.view.window())
-                umount_sshfs(mount_path)
+                folder_was_in_project = remove_from_project_folders(
+                    str(mount_path), self.view.window()
+                )
+                is_ok = umount_sshfs(mount_path)
         finally:
             self.view.erase_status("zz_mounting_sshfs")
+
+        # in case of mounting success, add folder to project
+        # in case of unmounting failure, re-add folder to project (if it was present)
+        if (self.do_mount and is_ok) or (not self.do_mount and not is_ok and folder_was_in_project):
+            add_to_project_folders(
+                str(mount_path), f"{ssh_session}{self.remote_path}", self.view.window()
+            )
+
+        # don't update project data if action failed
+        if not is_ok:
+            return
 
         # store/remove mount path in/from SSH session metadata
         with project_data_lock:
