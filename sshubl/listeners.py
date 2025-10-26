@@ -1,7 +1,7 @@
 import contextlib
 import logging
 import uuid
-from pathlib import Path
+from pathlib import Path, PurePath
 from threading import Lock as ThreadingLock
 
 import sublime
@@ -9,6 +9,7 @@ import sublime_plugin
 
 from .actions import SshKeepaliveThread
 from .project_data import SshSession, remove_from_project_folders, update_window_status
+from .paths import mounts_path
 from .ssh_utils import ssh_disconnect, umount_sshfs
 
 _logger = logging.getLogger(__package__)
@@ -16,6 +17,40 @@ _logger = logging.getLogger(__package__)
 
 _ka_threads = {}
 _ka_threads_lock = ThreadingLock()
+
+
+def disable_git_gutter_for_view(view: sublime.View) -> None:
+    """
+    This function disables GitGutter from view, if it contains a file relative to SSHubl mount paths
+    folder (which is very likely supposed to be a remote file mounted over SSHFS).
+    This is to prevent Sublime's Git integration to keep opening file descriptors which mess with
+    unmounting operations.
+    It requires GitGutter v1.7.5+.
+    """
+    view_file_name = view.file_name()
+    if view_file_name is None:
+        # file doesn't exist on disk
+        return
+
+    view_file_name_path = PurePath(view_file_name)
+    # Python < 3.9, `PurePath.is_relative_to` doesn't exist
+    try:
+        view_file_name_path.relative_to(mounts_path)
+    except ValueError:
+        # file isn't relative to SSHFS mount points
+        return
+
+    _logger.debug(
+        "%s is likely a remote file, disabling GitGutter from view %d...",
+        view_file_name_path,
+        view.id(),
+    )
+
+    view.settings().update(
+        {
+            "git_gutter_enable": False,
+        }
+    )
 
 
 def start_ka_thread_if_needed(window: sublime.Window) -> None:
@@ -66,6 +101,7 @@ class EventListener(sublime_plugin.EventListener):
 
 class ViewEventListener(sublime_plugin.ViewEventListener):
     def on_load_async(self):
+        disable_git_gutter_for_view(self.view)
         update_window_status(self.view.window())
 
 
