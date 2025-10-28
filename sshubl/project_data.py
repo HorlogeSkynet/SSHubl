@@ -14,7 +14,7 @@ def update_window_status(window: typing.Optional[sublime.Window] = None):
     if window is None:
         window = sublime.active_window()
 
-    # build a set of SSH sessions which will accumulates forwards
+    # build a set of SSH sessions which will accumulate forwards
     forwards_per_unique_ssh_sessions: typing.Dict[str, typing.List[dict]] = {}
     for ssh_session in SshSession.get_all_from_project_data(window).values():
         # mask "down" sessions from status
