@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - GitGutter from remote SSHFS file views
 
+### Security
+
+- Warn user about local file edition (e.g. when "follow_symlinks" has been disabled)
+
 ## [0.6.0] - 2025-08-06
 
 ### Added
