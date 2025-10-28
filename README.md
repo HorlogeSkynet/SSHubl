@@ -86,6 +86,7 @@ Open your command palette and type in `SSHubl` to select `Connect to server`. On
 	"sshfs_arguments": [],
 	// Whether sshfs mount should follow symlinks.
 	// Set to `false` to avoid symlink loop issues (e.g. Sublime keeps refreshing folders).
+	// Disabling it may lead to **local** file edition, use at your own risk !
 	"sshfs_follow_symlinks": true,
 }
 ```
