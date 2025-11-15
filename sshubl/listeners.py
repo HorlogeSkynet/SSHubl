@@ -1,8 +1,10 @@
 import contextlib
+import html
 import logging
 import uuid
-from pathlib import Path, PurePath
+from pathlib import Path
 from threading import Lock as ThreadingLock
+from urllib.parse import urlparse
 
 import sublime
 import sublime_plugin
@@ -12,6 +14,12 @@ from .project_data import SshSession, remove_from_project_folders, update_window
 from .paths import mounts_path
 from .ssh_utils import ssh_disconnect, umount_sshfs
 
+# Compatibility shim for Sublime Text < 4132
+if int(sublime.version()) >= 4132:
+    POPUP_FLAG_KEEP_ON_SELECTION_MODIFIED = sublime.PopupFlags.KEEP_ON_SELECTION_MODIFIED
+else:
+    POPUP_FLAG_KEEP_ON_SELECTION_MODIFIED = sublime.KEEP_ON_SELECTION_MODIFIED
+
 _logger = logging.getLogger(__package__)
 
 
@@ -19,37 +27,86 @@ _ka_threads = {}
 _ka_threads_lock = ThreadingLock()
 
 
-def disable_git_gutter_for_view(view: sublime.View) -> None:
+def sshfs_remote_file_prelude(view: sublime.View) -> None:
     """
-    This function disables GitGutter from view, if it contains a file relative to SSHubl mount paths
-    folder (which is very likely supposed to be a remote file mounted over SSHFS).
+    This function disables GitGutter from view, if it contains a file relative to SSHubl mounts path
+    (which is very likely supposed to be a remote file mounted over SSHFS).
     This is to prevent Sublime's Git integration to keep opening file descriptors which mess with
     unmounting operations.
     It requires GitGutter v1.7.5+.
+
+    If the file is relative to SSHubl mount paths but actually resolves outside of a mount point, a
+    popup is displayed to warn the user about **local** file edition.
     """
     view_file_name = view.file_name()
     if view_file_name is None:
         # file doesn't exist on disk
         return
 
-    view_file_name_path = PurePath(view_file_name)
-    # Python < 3.9, `PurePath.is_relative_to` doesn't exist
+    # assert file is relative to SSHubl SSHFS mounts path
+    view_file_name_path = Path(view_file_name)
     try:
-        view_file_name_path.relative_to(mounts_path)
+        view_file_name_path_rel_to_mounts = view_file_name_path.relative_to(mounts_path)
     except ValueError:
-        # file isn't relative to SSHFS mount points
         return
 
-    _logger.debug(
-        "%s is likely a remote file, disabling GitGutter from view %d...",
-        view_file_name_path,
-        view.id(),
-    )
+    # assert file actually resolves outside of mount point
+    view_file_name_path_real = view_file_name_path.resolve()
+    try:
+        # mount points are known to be 2 level deep relatively to `mounts_path`
+        if len(view_file_name_path_real.relative_to(mounts_path).parts) <= 2:
+            raise ValueError
+    except ValueError:
+        pass
+    else:
+        _logger.debug(
+            "%s is likely a remote file, disabling GitGutter from view %d...",
+            view_file_name_path,
+            view.id(),
+        )
 
-    view.settings().update(
-        {
-            "git_gutter_enable": False,
-        }
+        view.settings().update(
+            {
+                "git_gutter_enable": False,
+            }
+        )
+        return
+
+    # "user path" = path relative to $mounts_path stripped by session and mount UUID prefixes
+    view_file_name_user_path = Path(*view_file_name_path_rel_to_mounts.parts[2:])
+    # pylint: disable=line-too-long
+    popup_content = f"""
+        <body id="SSHubl-symlink_warning">
+            <style>
+                div.warning {{
+                    background-color: var(--orangish);
+                    color: black;
+                    padding: 10px;
+                }}
+            </style>
+            <div class="warning">
+                /!\\ SSHubl security warning /!\\<br />
+                {html.escape(str(view_file_name_user_path))} actually resolves to a local path on your computer ({html.escape(str(view_file_name_path_real))}) !<br />
+                This can happen when SSHFS doesn't remotely follow symbolic links. <a href="sshubl://hide_popup">I understand the risk (HIDE)</a>
+            </div>
+        </body>
+    """
+    # pylint: enable=line-too-long
+
+    viewport_width, viewport_height = view.viewport_extent()
+
+    def _on_navigate(href: str) -> None:
+        with contextlib.suppress(ValueError):
+            parse_result = urlparse(href)
+            if parse_result.scheme == "sshubl" and parse_result.hostname == "hide_popup":
+                view.hide_popup()
+
+    view.show_popup(
+        popup_content,
+        flags=POPUP_FLAG_KEEP_ON_SELECTION_MODIFIED,
+        max_width=viewport_width,
+        max_height=viewport_height,
+        on_navigate=_on_navigate,
     )
 
 
@@ -98,7 +155,7 @@ class EventListener(sublime_plugin.EventListener):
 
 class ViewEventListener(sublime_plugin.ViewEventListener):
     def on_load_async(self):
-        disable_git_gutter_for_view(self.view)
+        sshfs_remote_file_prelude(self.view)
         update_window_status(self.view.window())
 
 
