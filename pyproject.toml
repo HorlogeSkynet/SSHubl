@@ -18,6 +18,7 @@ py-version = "3.8"
 
 [tool.pylint.DESIGN]
 min-public-methods = 0
+module-naming-style = "any"
 
 [tool.mypy]
 check_untyped_defs = true
