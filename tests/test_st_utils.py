@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import sublime_plugin
 
-from sshubl.commands import SshTerminalCommand
-from sshubl.st_utils import (
+from ..sshubl.commands import SshTerminalCommand
+from ..sshubl.st_utils import (
     format_ip_addr,
     get_absolute_purepath_flavour,
     get_command_class,
@@ -33,7 +33,8 @@ class TestStUtils(unittest.TestCase):
         ]
 
         with patch(
-            "sshubl.st_utils.sublime_plugin.window_command_classes", window_command_classes_mock
+            "SSHubl.sshubl.st_utils.sublime_plugin.window_command_classes",
+            window_command_classes_mock,
         ):
             # unknown command, looked up twice
             self.assertIsNone(get_command_class("_UnknownCommand"))
@@ -67,7 +68,7 @@ class TestStUtils(unittest.TestCase):
         self.assertIsNone(get_absolute_purepath_flavour(""))
         self.assertIsNone(get_absolute_purepath_flavour("./rel/path"))
 
-    @patch("sshubl.st_utils.getpass.getuser", return_value="login")
+    @patch("SSHubl.sshubl.st_utils.getpass.getuser", return_value="login")
     def test_parse_ssh_connection(self, _) -> None:
         """parse_ssh_connection test cases"""
         self.assertTupleEqual(

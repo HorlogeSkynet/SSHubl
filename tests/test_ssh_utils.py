@@ -7,7 +7,7 @@ import uuid
 from pathlib import Path
 from unittest.mock import patch
 
-from sshubl.ssh_utils import ssh_forward
+from ..sshubl.ssh_utils import ssh_forward
 
 
 class TestSshUtils(unittest.TestCase):
@@ -19,7 +19,7 @@ class TestSshUtils(unittest.TestCase):
         identifier = uuid.uuid4()
 
         # below forwarding request/cancellation will succeed
-        with patch("sshubl.ssh_utils.subprocess.check_output") as check_output_mock:
+        with patch("SSHubl.sshubl.ssh_utils.subprocess.check_output") as check_output_mock:
             check_output_mock.return_value = ""
 
             # "-O forward -L 127.0.0.1:8888:127.0.0.1:22"
@@ -65,7 +65,7 @@ class TestSshUtils(unittest.TestCase):
                 self.assertFalse(local_unix_socket.exists())
 
         # below forwarding request causes 4242 port to be allocated by remote (printed to stdout)
-        with patch("sshubl.ssh_utils.subprocess.check_output") as check_output_mock:
+        with patch("SSHubl.sshubl.ssh_utils.subprocess.check_output") as check_output_mock:
             check_output_mock.return_value = "4242\n"
 
             # "-O forward -R 127.0.0.1:0:[::1]:8888"
@@ -87,7 +87,7 @@ class TestSshUtils(unittest.TestCase):
             )
 
         # below forwarding request fails
-        with patch("sshubl.ssh_utils.subprocess.check_output") as check_output_mock:
+        with patch("SSHubl.sshubl.ssh_utils.subprocess.check_output") as check_output_mock:
             check_output_mock.side_effect = subprocess.CalledProcessError(
                 1,
                 "",
