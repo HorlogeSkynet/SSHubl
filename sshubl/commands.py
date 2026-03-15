@@ -653,7 +653,7 @@ class _SelectRemotePathInputHandler(
                 shlex.quote(str(self.current_remote_path))
                 + "{path_sep}*{path_sep}".format(
                     # pylint: disable=protected-access
-                    path_sep=self.current_remote_path._flavour.sep  # type: ignore[attr-defined]
+                    path_sep=self.current_remote_path._flavour.sep
                     # pylint: enable=protected-access
                 ),
             ],

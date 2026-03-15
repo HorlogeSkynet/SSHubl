@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import sublime_plugin
 
-from ..sshubl.commands import SshTerminalCommand
-from ..sshubl.st_utils import (
+from ..sshubl.commands import SshTerminalCommand  # type: ignore[unresolved-import]
+from ..sshubl.st_utils import (  # type: ignore[unresolved-import]
     format_ip_addr,
     get_absolute_purepath_flavour,
     get_command_class,
