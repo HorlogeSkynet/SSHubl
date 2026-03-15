@@ -7,7 +7,7 @@ import uuid
 from pathlib import Path
 from unittest.mock import patch
 
-from ..sshubl.ssh_utils import ssh_forward
+from ..sshubl.ssh_utils import ssh_forward  # type: ignore[unresolved-import]
 
 
 class TestSshUtils(unittest.TestCase):

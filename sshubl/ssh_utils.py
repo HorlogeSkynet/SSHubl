@@ -31,7 +31,7 @@ from .vendor import mslex
 if platform.system() != "Windows":
     platformlex = shlex
 else:
-    platformlex = mslex  # type: ignore[misc]
+    platformlex = mslex
 
 
 _logger = logging.getLogger(__package__)
@@ -184,13 +184,13 @@ def ssh_connect_interactive(
 
     terminus_open_args: typing.Dict[str, typing.Any] = {
         "shell_cmd": platformlex.join(
-            (
+            [
                 ssh_program,
                 f"-l{login}",
                 f"-p{port}",
                 *[OPENSSH_OPTION.format(key, value) for key, value in ssh_options.items()],
                 host,
-            )
+            ]
         ),
         "title": f"{login}@{format_ip_addr(host)}:{port}",
         "auto_close": "on_success",

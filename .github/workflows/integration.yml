@@ -21,7 +21,7 @@ jobs:
           uv venv venv && source venv/bin/activate
           uv pip install -r requirements-dev.txt
           pylint *.py sshubl/ tests/
-          mypy *.py sshubl/ tests/
+          ty check sshubl/ tests/
           ruff format --check --diff *.py sshubl/ tests/
 
   plugin_tests:
