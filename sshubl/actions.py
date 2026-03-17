@@ -77,7 +77,7 @@ def _on_connection(
 
 
 class SshConnect(Thread):
-    def __init__(  # pylint: disable=too-many-positional-arguments
+    def __init__(  # pylint: disable=too-many-arguments, too-many-positional-arguments
         self,
         view: sublime.View,
         connection_str: str,
@@ -145,7 +145,7 @@ class SshConnect(Thread):
 
 
 class SshInteractiveConnectionWatcher(Thread):
-    def __init__(  # pylint: disable=too-many-positional-arguments
+    def __init__(  # pylint: disable=too-many-arguments, too-many-positional-arguments
         self,
         view: sublime.View,
         identifier: uuid.UUID,
@@ -253,7 +253,7 @@ class SshDisconnect(Thread):
 
 
 class SshForward(Thread):
-    def __init__(  # pylint: disable=too-many-positional-arguments
+    def __init__(  # pylint: disable=too-many-arguments, too-many-positional-arguments
         self,
         view: sublime.View,
         identifier: uuid.UUID,
@@ -463,7 +463,7 @@ class SshKeepaliveThread(Thread):
         )
 
 
-def schedule_ssh_connect_password_command(  # pylint: disable=too-many-positional-arguments
+def schedule_ssh_connect_password_command(  # pylint: disable=too-many-arguments, too-many-positional-arguments
     host: str,
     port: int,
     login: str,
