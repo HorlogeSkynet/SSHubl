@@ -20,9 +20,9 @@ for suffix in (
     "commands",
     "listeners",
 ):
-    module = f"{__package__}.sshubl.{suffix}"
-    if module in sys.modules:
-        importlib.reload(sys.modules[module])
+    MODULE = f"{__package__}.sshubl.{suffix}"
+    if MODULE in sys.modules:
+        importlib.reload(sys.modules[MODULE])
 
 if int(sublime.version()) < ST_REQUIRED_MINIMUM_VERSION:
     sublime.error_message(f"Sublime Text {ST_REQUIRED_MINIMUM_VERSION}+ is required !")
