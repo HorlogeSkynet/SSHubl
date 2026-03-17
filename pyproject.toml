@@ -1,3 +1,7 @@
+# Dependabot
+[project]
+requires-python = ">=3.9"
+
 # PyLint
 [tool.pylint.MASTER]
 disable = [
