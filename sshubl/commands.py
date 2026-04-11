@@ -206,7 +206,7 @@ class SshConnectPasswordCommand(sublime_plugin.WindowCommand):
     Current active panel (in Sublime's terms) is saved and then re-opened afterwards.
     """
 
-    def run(  # pylint: disable=too-many-arguments, too-many-positional-arguments
+    def run(  # pylint: disable=too-many-arguments
         self,
         host: str,
         port: int,
@@ -259,7 +259,7 @@ class SshConnectPasswordCommand(sublime_plugin.WindowCommand):
     def is_visible(self):
         return False
 
-    def _on_done(  # pylint: disable=too-many-arguments, too-many-positional-arguments
+    def _on_done(  # pylint: disable=too-many-arguments
         self,
         password: str,
         *,
@@ -284,7 +284,7 @@ class SshConnectPasswordCommand(sublime_plugin.WindowCommand):
         finally:
             self._finish(panel_to_open)
 
-    def _on_cancel(  # pylint: disable=too-many-arguments, too-many-positional-arguments
+    def _on_cancel(  # pylint: disable=too-many-arguments
         self,
         host: str,
         port: int,
