@@ -1,5 +1,7 @@
 # Dependabot
 [project]
+name = "SSHubl"
+version = "0.8.0-dev"
 requires-python = ">=3.9"
 
 # PyLint
