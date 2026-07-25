@@ -3,5 +3,5 @@ types-pexpect
 
 pylint~=3.2.7
 pylint-secure-coding-standard~=1.5.1
-ruff~=0.15.6
+ruff~=0.16.0
 ty~=0.0.23
