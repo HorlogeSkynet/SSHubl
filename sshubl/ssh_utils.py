@@ -89,15 +89,24 @@ def get_base_ssh_cmd(
 
 
 def get_ssh_master_options(identifier: uuid.UUID) -> dict:
-    return {
+    ssh_master_options = {
         **_settings().get("ssh_options", {}),
         # enforce keep-alive for future sshfs usages (see upstream recommendations)
         "ServerAliveInterval": str(_settings().get("ssh_server_alive_interval", 15)),
-        "ControlMaster": "auto",
-        "ControlPath": str(sockets_path / str(identifier)),
-        # keep connection opened for 1 minute (without new connection to control socket)
-        "ControlPersist": "60",
     }
+
+    # XX : Win32-OpenSSH doesn't support "control master" feature at the moment (see #24).
+    if platform.system() != "Windows":
+        ssh_master_options.update(
+            {
+                "ControlMaster": "auto",
+                "ControlPath": str(sockets_path / str(identifier)),
+                # keep connection opened for 1 minute (without new connection to control socket)
+                "ControlPersist": "60",
+            }
+        )
+
+    return ssh_master_options
 
 
 def ssh_connect(
