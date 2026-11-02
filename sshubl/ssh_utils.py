@@ -75,7 +75,7 @@ def get_base_ssh_cmd(
     base_ssh_cmd = [
         program_path,
         OPENSSH_OPTION.format("ControlPath", sockets_path / str(identifier)),
-        # Prevent connection to fake 'destination" if control master is unavailable (inspired by
+        # Prevent connection to fake "destination" if control master is unavailable (inspired by
         # <https://serverfault.com/a/914779>)
         OPENSSH_OPTION.format("ProxyCommand", "exit 1"),
         *args,
