@@ -43,7 +43,7 @@ exclude = [
 include = ["tests/**/test_*.py"]
 
 [tool.ty.overrides.rules]
-unresolved-import = "ignore"
+import-not-found = "ignore"
 
 ## Disable inconsistent MRO rule for Sublime commands (as `sublime_plugin.*InputHandler` bases are missing).
 [[tool.ty.overrides]]
