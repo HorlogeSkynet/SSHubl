@@ -2,6 +2,7 @@ import contextlib
 import logging
 import os
 import platform
+import re
 import shlex
 import shutil
 import subprocess
@@ -41,9 +42,19 @@ def _settings():
     return sublime.load_settings("SSHubl.sublime-settings")
 
 
-# We double-quote OpenSSH option values to properly deal with white-spaces. From our tests, this is
-# the only way to correctly deal with UNIX **and** Windows once escaping has been done.
-OPENSSH_OPTION = '-o{0}="{1}"'
+def _format_ssh_option(option: str, value: typing.Any) -> str:
+    # We quote OpenSSH option string values which contain white-spaces. From our tests, this
+    # is the only way to properly deal with them on UNIX and Windows once escaping has been done.
+    #
+    # So, why not quoting _all_ option values ?
+    # It turns out OpenSSH implements specific parsers (e.g. `convtime_double`, converting time
+    # strings to seconds), which don't necessarily support quotes.
+    # See <https://github.com/openssh/openssh-portable/blob/fa4b2a82/misc.c#L658-L754>.
+    if isinstance(value, str) and re.search(r"\s", value):
+        value = platformlex.quote(value)
+
+    return f"-o{option}={value}"
+
 
 ssh_program = _settings().get("ssh_path") or shutil.which("ssh")
 sshfs_program = _settings().get("sshfs_path") or shutil.which("sshfs")
@@ -74,10 +85,10 @@ def get_base_ssh_cmd(
 
     base_ssh_cmd = [
         program_path,
-        OPENSSH_OPTION.format("ControlPath", sockets_path / str(identifier)),
-        # Prevent connection to fake 'destination" if control master is unavailable (inspired by
+        _format_ssh_option("ControlPath", sockets_path / str(identifier)),
+        # Prevent connection to fake "destination" if control master is unavailable (inspired by
         # <https://serverfault.com/a/914779>)
-        OPENSSH_OPTION.format("ProxyCommand", "exit 1"),
+        _format_ssh_option("ProxyCommand", "exit 1"),
         *args,
     ]
 
@@ -89,15 +100,24 @@ def get_base_ssh_cmd(
 
 
 def get_ssh_master_options(identifier: uuid.UUID) -> dict:
-    return {
+    ssh_master_options = {
         **_settings().get("ssh_options", {}),
         # enforce keep-alive for future sshfs usages (see upstream recommendations)
         "ServerAliveInterval": str(_settings().get("ssh_server_alive_interval", 15)),
-        "ControlMaster": "auto",
-        "ControlPath": str(sockets_path / str(identifier)),
-        # keep connection opened for 1 minute (without new connection to control socket)
-        "ControlPersist": "60",
     }
+
+    # XX : Win32-OpenSSH doesn't support "control master" feature at the moment (see #24).
+    if platform.system() != "Windows":
+        ssh_master_options.update(
+            {
+                "ControlMaster": "auto",
+                "ControlPath": str(sockets_path / str(identifier)),
+                # keep connection opened for 1 minute (without new connection to control socket)
+                "ControlPersist": "60",
+            }
+        )
+
+    return ssh_master_options
 
 
 def ssh_connect(
@@ -182,16 +202,18 @@ def ssh_connect_interactive(
 
     host, port, login, _ = parse_ssh_connection(connection_str)
 
+    shell_cmd = platformlex.join(
+        [
+            ssh_program,
+            f"-l{login}",
+            f"-p{port}",
+            *(_format_ssh_option(key, value) for key, value in ssh_options.items()),
+            host,
+        ]
+    )
+
     terminus_open_args: typing.Dict[str, typing.Any] = {
-        "shell_cmd": platformlex.join(
-            [
-                ssh_program,
-                f"-l{login}",
-                f"-p{port}",
-                *[OPENSSH_OPTION.format(key, value) for key, value in ssh_options.items()],
-                host,
-            ]
-        ),
+        "shell_cmd": shell_cmd,
         "title": f"{login}@{format_ip_addr(host)}:{port}",
         "auto_close": "on_success",
         "post_view_hooks": [
@@ -215,6 +237,7 @@ def ssh_connect_interactive(
             "spell_check": False,
         }
 
+    _logger.debug("running 'terminus_open' command with shell_cmd=%s", shell_cmd)
     window.run_command("terminus_open", terminus_open_args)
 
 
